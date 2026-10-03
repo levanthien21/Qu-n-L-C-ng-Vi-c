@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import {
   CalendarDays,
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { buildDashboard } from '../domain/alerts';
 import { formatVN, weekdayVN } from '../domain/dates';
+import { customerWaitingDays } from '../domain/status';
 import { useStore } from '../store/useStore';
 
 const MAIN_NAV = [
@@ -60,6 +61,47 @@ export default function Layout() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const overdue = dash.stats.overdueTasks;
   const dangerReminders = dash.reminders.filter((r) => r.severity === 'danger');
+
+  useEffect(() => {
+    const store = useStore.getState();
+    // 1. Tự động đóng ticket nếu quá ngày chờ
+    const checkWaiting = () => {
+      for (const c of store.customers) {
+        if (!c.manualStatus) {
+          const waitDays = customerWaitingDays(c, store.tasks, store.today);
+          if (waitDays >= store.settings.waitingCloseDays) {
+            store.setManualStatus(c.id, 'ticket_closed', `Hệ thống tự đóng do quá ${store.settings.waitingCloseDays} ngày Chờ khách`);
+          }
+        }
+      }
+    };
+    checkWaiting();
+
+    // 2. Tự động đồng bộ ngầm Google Sheet
+    const bgSync = async () => {
+      const { settings, customers, toggleMeetingConfirmed } = useStore.getState();
+      if (!settings.googleScriptUrl) return;
+      const active = customers.filter((c) => c.sheetLink && (!c.manualStatus || c.manualStatus === 'paused'));
+      for (const c of active) {
+        try {
+          const match = c.sheetLink!.match(/\/d\/([a-zA-Z0-9-_]+)/);
+          if (!match) continue;
+          const res = await fetch(`${settings.googleScriptUrl}?id=${match[1]}`);
+          const data = await res.json();
+          if (data.success) {
+            if (data.data.meeting1 && !c.meetingConfirmed['1']) toggleMeetingConfirmed(c.id, 1);
+            if (data.data.meeting2 && !c.meetingConfirmed['2']) toggleMeetingConfirmed(c.id, 2);
+            if (data.data.meeting3 && !c.meetingConfirmed['3']) toggleMeetingConfirmed(c.id, 3);
+          }
+        } catch (e) {
+          console.error('Lỗi đồng bộ ngầm', c.name, e);
+        }
+      }
+    };
+    bgSync(); // chạy ngay lúc đầu
+    const iv = setInterval(bgSync, 10 * 60 * 1000); // 10 phút/lần
+    return () => clearInterval(iv);
+  }, [today]);
 
   const badgeFor = (to: string) => (to === '/' ? overdue : to === '/khach-hang' ? dash.risky.length : 0);
 
