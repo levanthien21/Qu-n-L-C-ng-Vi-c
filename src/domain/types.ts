@@ -147,6 +147,8 @@ export interface Customer {
   sheetLink?: string;
   saleId: string;
   retionId: string;
+  sheetData?: Record<string, any[][]>;
+  lastSheetSync?: string;
   templateId: string;
   templateName: string;
   durationDays: number;

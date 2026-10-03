@@ -77,9 +77,9 @@ export default function Layout() {
     };
     checkWaiting();
 
-    // 2. Tự động đồng bộ ngầm Google Sheet
+    // 2. Tự động đồng bộ ngầm toàn bộ dữ liệu Google Sheet
     const bgSync = async () => {
-      const { settings, customers, toggleMeetingConfirmed } = useStore.getState();
+      const { settings, customers, updateCustomer } = useStore.getState();
       if (!settings.googleScriptUrl) return;
       const active = customers.filter((c) => c.sheetLink && (!c.manualStatus || c.manualStatus === 'paused'));
       for (const c of active) {
@@ -88,10 +88,11 @@ export default function Layout() {
           if (!match) continue;
           const res = await fetch(`${settings.googleScriptUrl}?id=${match[1]}`);
           const data = await res.json();
-          if (data.success) {
-            if (data.data.meeting1 && !c.meetingConfirmed['1']) toggleMeetingConfirmed(c.id, 1);
-            if (data.data.meeting2 && !c.meetingConfirmed['2']) toggleMeetingConfirmed(c.id, 2);
-            if (data.data.meeting3 && !c.meetingConfirmed['3']) toggleMeetingConfirmed(c.id, 3);
+          if (data.success && data.data) {
+             updateCustomer(c.id, { 
+               sheetData: data.data,
+               lastSheetSync: new Date().toISOString()
+             });
           }
         } catch (e) {
           console.error('Lỗi đồng bộ ngầm', c.name, e);
