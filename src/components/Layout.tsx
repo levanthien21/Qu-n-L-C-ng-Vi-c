@@ -1,22 +1,12 @@
-import { useMemo, useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import {
-  CalendarDays,
-  Columns3,
-  Database,
-  LayoutTemplate,
   ListChecks,
   Moon,
   Settings as SettingsIcon,
   Sun,
-  Users,
-  AlertTriangle,
-  Monitor,
-  MoreHorizontal,
-  ChevronDown,
-  ChevronRight
+  Monitor
 } from 'lucide-react';
-import { buildDashboard } from '../domain/alerts';
 import { formatVN, weekdayVN } from '../domain/dates';
 import { customerWaitingDays } from '../domain/status';
 import { useStore } from '../store/useStore';
@@ -28,14 +18,6 @@ const MAIN_NAV = [
 const SECONDARY_NAV = [
   { to: '/cai-dat', label: 'Cài đặt (Webhook)', icon: SettingsIcon, end: false },
 ];
-
-export function useDashboard() {
-  const customers = useStore((s) => s.customers);
-  const tasks = useStore((s) => s.tasks);
-  const today = useStore((s) => s.today);
-  const settings = useStore((s) => s.settings);
-  return useMemo(() => buildDashboard(customers, tasks, today, settings), [customers, tasks, today, settings]);
-}
 
 function ThemeToggle() {
   const theme = useStore((s) => s.settings.theme);
@@ -52,14 +34,9 @@ function ThemeToggle() {
 
 export default function Layout() {
   const today = useStore((s) => s.today);
-  const dash = useDashboard();
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const overdue = dash.stats.overdueTasks;
-  const dangerReminders = dash.reminders.filter((r) => r.severity === 'danger');
 
   useEffect(() => {
     const store = useStore.getState();
-    // 1. Tự động đóng ticket nếu quá ngày chờ
     const checkWaiting = () => {
       for (const c of store.customers) {
         if (!c.manualStatus) {
@@ -72,7 +49,6 @@ export default function Layout() {
     };
     checkWaiting();
 
-    // 2. Tự động đồng bộ ngầm toàn bộ dữ liệu Google Sheet
     const bgSync = async () => {
       const { settings, customers, updateCustomer } = useStore.getState();
       if (!settings.googleScriptUrl) return;
@@ -94,127 +70,89 @@ export default function Layout() {
         }
       }
     };
-    bgSync(); // chạy ngay lúc đầu
-    const iv = setInterval(bgSync, 10 * 60 * 1000); // 10 phút/lần
+    bgSync(); 
+    const iv = setInterval(bgSync, 10 * 60 * 1000); 
     return () => clearInterval(iv);
   }, [today]);
 
-  const badgeFor = (to: string) => (to === '/' ? overdue : to === '/khach-hang' ? dash.risky.length : 0);
-
   const NavItem = ({ to, label, icon: Icon, end }: any) => {
-    const b = badgeFor(to);
     return (
       <NavLink
         to={to}
         end={end}
         className={({ isActive }) =>
-          `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-            isActive
-              ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
-              : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+          `group flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            isActive ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50'
           }`
         }
+        onClick={() => {
+          if (window.innerWidth < 1024) document.getElementById('sidebar-toggle')?.click();
+        }}
       >
-        <Icon size={17} />
-        <span className="flex-1">{label}</span>
-        {b > 0 && (
-          <span className={`rounded-full px-1.5 text-[11px] font-bold text-white ${to === '/' ? 'bg-red-500' : 'bg-amber-500'}`}>{b}</span>
-        )}
+        <div className="flex items-center gap-3">
+          <Icon size={18} className="opacity-75 group-hover:opacity-100" />
+          {label}
+        </div>
       </NavLink>
     );
   };
 
   return (
-    <div className="min-h-screen md:flex">
-      {/* Thanh bên (máy tính) */}
-      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex">
-        <Link to="/" className="mb-4 px-2 pt-1">
-          <div className="text-base font-bold text-indigo-600 dark:text-indigo-400">Onboarding Tracker</div>
-          <div className="text-[11px] text-slate-500">Triển khai DVHL AI</div>
-        </Link>
-        <nav className="flex flex-1 flex-col gap-1">
-          {MAIN_NAV.map((item) => (
-            <NavItem key={item.to} {...item} />
-          ))}
-          
-          <button 
-            onClick={() => setShowMoreMenu(!showMoreMenu)}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            {showMoreMenu ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
-            <span className="flex-1 text-left">Tính năng khác</span>
-          </button>
-          
-          {showMoreMenu && (
-            <div className="ml-2 flex flex-col gap-1 border-l-2 border-slate-100 pl-2 dark:border-slate-800">
-              {SECONDARY_NAV.map((item) => (
-                <NavItem key={item.to} {...item} />
-              ))}
-            </div>
-          )}
-        </nav>
-        <div className="px-2 text-[11px] text-slate-500">GMT+7 · dd/mm/yyyy</div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-2.5 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
-          <div>
-            <div className="text-sm font-semibold">
-              {weekdayVN(today)}, {formatVN(today)}
-            </div>
-            <div className="text-[11px] text-slate-500 md:hidden">Onboarding Tracker · DVHL AI</div>
-          </div>
-          <ThemeToggle />
-        </header>
-
-        {(overdue > 0 || dangerReminders.length > 0) && (
-          <div className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
-            <AlertTriangle size={14} className="mr-1.5 inline" />
-            {overdue > 0 && (
-              <Link to="/" className="font-semibold underline">
-                {overdue} việc quá hạn
-              </Link>
-            )}
-            {overdue > 0 && dangerReminders.length > 0 && ' · '}
-            {dangerReminders.length > 0 && (
-              <Link to="/" className="font-semibold underline">
-                {dangerReminders.length} cảnh báo khẩn cần xử lý
-              </Link>
-            )}
-          </div>
-        )}
-
-        <main className="mx-auto w-full max-w-6xl flex-1 p-3 sm:p-5">
-          <Outlet />
-        </main>
+    <div className="flex h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 z-50">
+        <span className="font-bold text-lg text-indigo-600 dark:text-indigo-400">DVHL Manager</span>
+        <button id="sidebar-toggle" className="p-2 -mr-2" onClick={() => document.body.classList.toggle('sidebar-open')}>
+          <ListChecks size={24} />
+        </button>
       </div>
 
-      {/* Thanh dưới (điện thoại) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:hidden">
-        {[MAIN_NAV[0], MAIN_NAV[1], SECONDARY_NAV[0], SECONDARY_NAV[1], SECONDARY_NAV[4]].map(({ to, label, icon: Icon, end }) => {
-          const b = badgeFor(to);
-          return (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${
-                  isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'
-                }`
-              }
-            >
-              <Icon size={19} />
-              {label}
-              {b > 0 && (
-                <span className={`absolute right-3 top-1 rounded-full px-1 text-[9px] font-bold text-white ${to === '/' ? 'bg-red-500' : 'bg-amber-500'}`}>
-                  {b}
-                </span>
-              )}
-            </NavLink>
-          );
-        })}
-      </nav>
+      <aside className="sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transition-transform bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+        <div className="h-14 lg:h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 hidden lg:flex">
+          <Link to="/" className="flex items-center gap-2 font-bold text-xl text-indigo-600 dark:text-indigo-400">
+            <ListChecks size={24} /> DVHL Manager
+          </Link>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 pt-20 lg:pt-4">
+          <nav className="space-y-1">
+            {MAIN_NAV.map((n) => (
+              <NavItem key={n.to} {...n} />
+            ))}
+          </nav>
+
+          <nav className="space-y-1 pt-4 border-t border-slate-100 dark:border-slate-800">
+             {SECONDARY_NAV.map((n) => (
+               <NavItem key={n.to} {...n} />
+             ))}
+          </nav>
+        </div>
+        
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+          <ThemeToggle />
+        </div>
+      </aside>
+
+      <div
+        className="fixed inset-0 bg-slate-900/50 z-30 lg:hidden opacity-0 pointer-events-none transition-opacity overlay"
+        onClick={() => document.body.classList.remove('sidebar-open')}
+      />
+
+      <main className="flex-1 overflow-y-auto pt-14 lg:pt-0">
+        <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="text-sm font-medium text-slate-500">{weekdayVN(today)}</div>
+              <h1 className="text-2xl font-bold">{formatVN(today)}</h1>
+            </div>
+          </div>
+          <Outlet />
+        </div>
+      </main>
+
+      <style>{`
+        .sidebar-open .sidebar { transform: translateX(0); }
+        .sidebar-open .overlay { opacity: 1; pointer-events: auto; }
+      `}</style>
     </div>
   );
 }
