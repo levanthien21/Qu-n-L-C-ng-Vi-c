@@ -176,6 +176,7 @@ export interface Customer {
   completedAt?: string;
   isDemo?: boolean;
   sopChecklist?: Record<string, boolean>;
+  meetingNotes?: { id: string; date: string; note: string }[];
 }
 
 export interface Settings {
