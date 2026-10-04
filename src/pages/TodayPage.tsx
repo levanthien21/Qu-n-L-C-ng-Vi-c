@@ -1,22 +1,30 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { parseSheetData } from '../domain/sheetParser';
-import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus } from 'lucide-react';
 import { ProgressBar, Badge } from '../components/ui';
+import { CustomerFormModal } from '../components/CustomerFormModal';
 
 export default function TodayPage() {
   const customers = useStore((s) => s.customers);
   const settings = useStore((s) => s.settings);
+  const [addOpen, setAddOpen] = useState(false);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">Master Dashboard (Thống kê từ Google Sheet)</h1>
-        {!settings.googleScriptUrl && (
-           <Link to="/cai-dat" className="text-red-500 underline text-sm font-semibold">
-             ⚠️ Chưa cài đặt Google Script URL ở mục Cài đặt
-           </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {!settings.googleScriptUrl && (
+             <Link to="/cai-dat" className="text-red-500 underline text-sm font-semibold">
+               ⚠️ Chưa cài đặt Cầu nối
+             </Link>
+          )}
+          <button className="btn-primary" onClick={() => setAddOpen(true)}>
+            <Plus size={16} /> Thêm khách hàng
+          </button>
+        </div>
       </div>
 
       <div className="card overflow-x-auto">
@@ -106,13 +114,15 @@ export default function TodayPage() {
             {customers.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-8 text-center text-slate-500">
-                   Chưa có khách hàng nào. <Link to="/khach-hang" className="text-indigo-600 underline">Thêm khách hàng ngay</Link>
+                   Chưa có khách hàng nào. <button onClick={() => setAddOpen(true)} className="text-indigo-600 underline">Thêm khách hàng ngay</button>
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+      
+      {addOpen && <CustomerFormModal onClose={() => setAddOpen(false)} />}
     </div>
   );
 }

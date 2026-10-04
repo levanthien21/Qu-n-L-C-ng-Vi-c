@@ -22,16 +22,11 @@ import { customerWaitingDays } from '../domain/status';
 import { useStore } from '../store/useStore';
 
 const MAIN_NAV = [
-  { to: '/', label: 'Hôm nay', icon: ListChecks, end: true },
-  { to: '/khach-hang', label: 'Khách hàng', icon: Users },
+  { to: '/', label: 'Thống kê (Dashboard)', icon: ListChecks, end: true },
 ];
 
 const SECONDARY_NAV = [
-  { to: '/lich', label: 'Lịch', icon: CalendarDays, end: false },
-  { to: '/kanban', label: 'Kanban', icon: Columns3, end: false },
-  { to: '/template', label: 'Template', icon: LayoutTemplate, end: false },
-  { to: '/du-lieu', label: 'Nhập/Xuất', icon: Database, end: false },
-  { to: '/cai-dat', label: 'Cài đặt', icon: SettingsIcon, end: false },
+  { to: '/cai-dat', label: 'Cài đặt (Webhook)', icon: SettingsIcon, end: false },
 ];
 
 export function useDashboard() {
