@@ -27,7 +27,7 @@ function CustomerDetailModal({ customerId, onClose }: { customerId: string; onCl
           </button>
         </div>
         
-        <div className="p-4 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900">
+        <div className="pl-4 pr-1.5 py-4 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900">
           <MeetingScheduler customer={customer} />
 
           <SOPGuide customer={customer} />

@@ -101,7 +101,7 @@ export default function Layout() {
     <div className="flex h-screen text-slate-900 dark:text-slate-100">
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur dark:bg-slate-900/90 border-b border-orange-100 dark:border-slate-800 flex items-center justify-between px-4 z-50">
         <span className="flex items-center gap-2 font-extrabold text-lg">
-          <img src="/logo.png" alt="Logo" className="h-10 w-10 rounded-xl object-contain bg-white shadow-md shadow-orange-500/30" />
+          <img src="/logo.png" alt="Logo" className="h-10 w-10 rounded-xl object-contain bg-white p-1 shadow-md shadow-orange-500/30" />
           <span className="gradient-text">Thiện Bot Bán Hàng</span>
         </span>
         <button id="sidebar-toggle" className="p-2 -mr-2" onClick={() => document.body.classList.toggle('sidebar-open')}>
@@ -112,7 +112,7 @@ export default function Layout() {
       <aside className="sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transition-transform bg-white/90 backdrop-blur dark:bg-slate-900/90 border-r border-orange-100 dark:border-slate-800 flex flex-col">
         <div className="h-20 hidden lg:flex items-center px-5 border-b border-orange-100 dark:border-slate-800">
           <Link to="/" className="flex items-center gap-3 group">
-            <img src="/logo.png" alt="Logo" className="h-16 w-16 rounded-2xl object-contain bg-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-200 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 animate-float" />
+            <img src="/logo.png" alt="Logo" className="h-16 w-16 rounded-2xl object-contain bg-white p-1.5 shadow-lg shadow-orange-500/30 ring-2 ring-orange-200 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 animate-float" />
             <div className="leading-tight">
               <div className="gradient-text text-lg font-extrabold">Thiện Bot Bán Hàng</div>
               <div className="text-[11px] font-medium text-slate-500">DVHL Support Manager</div>
