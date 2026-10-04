@@ -21,9 +21,8 @@ function Num({ label, k, hint }: { label: string; k: keyof Settings; hint?: stri
 }
 
 export default function SettingsPage() {
-  const theme = useStore((s) => s.settings.theme);
-  const settings = useStore((s) => s.settings);
-  const update = useStore((s) => s.updateSettings);
+  const { settings, updateSettings: update } = useStore();
+  const theme = settings.theme;
   const store = useStore.getState();
 
   return (
