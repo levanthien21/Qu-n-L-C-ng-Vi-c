@@ -19,14 +19,14 @@ export function SOPGuide({ customer }: { customer: Customer }) {
       updateCustomer(customer.id, { sopChecklist: newChecklist });
     };
     return (
-      <label className="flex items-start gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1.5 rounded -ml-1.5 transition-colors group">
+      <div onClick={toggle} className="flex items-start gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1.5 rounded -ml-1.5 transition-colors group">
         <div className="mt-0.5 text-indigo-500 shrink-0">
           {isChecked ? <CheckSquare size={16} className="text-emerald-500" /> : <Square size={16} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-400" />}
         </div>
         <span className={`text-sm ${isChecked ? "line-through text-slate-400 dark:text-slate-500" : "text-slate-700 dark:text-slate-200"}`}>
           {children}
         </span>
-      </label>
+      </div>
     );
   };
 
