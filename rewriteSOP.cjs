@@ -1,4 +1,6 @@
-import { ExternalLink, AlertTriangle, CheckSquare, Square, Copy, Check } from 'lucide-react';
+﻿const fs = require('fs');
+
+const content = `import { ExternalLink, AlertTriangle, CheckSquare, Square, Copy, Check } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Customer } from '../domain/types';
 import { ProgressBar } from './ui';
@@ -52,7 +54,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
          sendTelegramMessage(
             settings.telegramToken,
             settings.telegramChatId,
-            `✅ <b>CẬP NHẬT TIẾN ĐỘ SOP</b>\n\nKhách hàng: <b>${customer.name}</b>\nVừa hoàn thành bước:\n<i>${stepName || 'Một hạng mục trong lộ trình'}</i>`
+            \`✅ <b>CẬP NHẬT TIẾN ĐỘ SOP</b>\\n\\nKhách hàng: <b>\${customer.name}</b>\\nVừa hoàn thành bước:\\n<i>\${stepName || 'Một hạng mục trong lộ trình'}</i>\`
          );
       }
     };
@@ -61,7 +63,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
         <div className="mt-0.5 text-indigo-500 shrink-0">
           {isChecked ? <CheckSquare size={16} className="text-emerald-500" /> : <Square size={16} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-400" />}
         </div>
-        <span className={`text-sm ${isChecked ? "line-through text-slate-400 dark:text-slate-500" : "text-slate-700 dark:text-slate-200"}`}>
+        <span className={\`text-sm \${isChecked ? "line-through text-slate-400 dark:text-slate-500" : "text-slate-700 dark:text-slate-200"}\`}>
           {children}
         </span>
       </div>
@@ -91,7 +93,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
             <div className="flex flex-col gap-0.5">
               <CheckItem id="i_1_1">Tiếp nhận khách hàng từ nhóm Support nội bộ</CheckItem>
               <CheckItem id="i_1_2">Vào nhóm chào hỏi và giới thiệu, hẹn lịch hỗ trợ trong vòng 15 phút ngay sau khi tiếp nhận</CheckItem>
-              <CopyBox title="Mẫu chào hỏi & Hẹn lịch Kick-off" text={"@Kháchhang Chào anh/chị ạ.\nEm là Thiện - team Support sẽ đồng hành cùng anh/chị trong suốt quá trình triển khai AI nhé.\n\nEm gửi anh/chị tài liệu và các link setup AI ạ:\n- Link đăng nhập hệ thống: https://retion.ai/\n- Docs hướng dẫn: https://bbh.gitbook.io/bot-ban-hang-docs\n- Mẫu kiến thức: https://docs.google.com/spreadsheets/d/1hLnX21ibVpiklAcj7cx6qwnkiSMIKWKKR_Go3Vv3oNo/edit?usp=sharing\n\n- Link điền kiến thức và khảo sát: [Link ggsheet]\n\nSáng/Chiều Thứ … - ngày …. Lúc 10h30 chị tiện trao đổi không ạ, để em tạo meeting hướng dẫn anh/chị chuẩn bị các thông tin cần thiết cho AI nha."} />
+              <CopyBox title="Mẫu chào hỏi & Hẹn lịch Kick-off" text={"@Kháchhang Chào anh/chị ạ.\\nEm là Thiện - team Support sẽ đồng hành cùng anh/chị trong suốt quá trình triển khai AI nhé.\\n\\nEm gửi anh/chị tài liệu và các link setup AI ạ:\\n- Link đăng nhập hệ thống: https://retion.ai/\\n- Docs hướng dẫn: https://bbh.gitbook.io/bot-ban-hang-docs\\n- Mẫu kiến thức: https://docs.google.com/spreadsheets/d/1hLnX21ibVpiklAcj7cx6qwnkiSMIKWKKR_Go3Vv3oNo/edit?usp=sharing\\n\\n- Link điền kiến thức và khảo sát: [Link ggsheet]\\n\\nSáng/Chiều Thứ … - ngày …. Lúc 10h30 chị tiện trao đổi không ạ, để em tạo meeting hướng dẫn anh/chị chuẩn bị các thông tin cần thiết cho AI nha."} />
             </div>
           </div>
           <div>
@@ -129,7 +131,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
             <div className="flex flex-col gap-0.5">
               <CheckItem id="ii_1_1">Buổi meeting đầu tiên tiến hành khảo sát theo phần kick-off</CheckItem>
               <CheckItem id="ii_1_2">Sau meeting: điền đầy đủ ngày tháng vào timeline - Gửi tin nhắn xác nhận lên nhóm kèm record.</CheckItem>
-              <CopyBox title="Mẫu gửi sau buổi Kick-off" text={"Cảm ơn anh/chị @KH đã tham gia buổi triển khai hôm nay ạ.\n\nEm gửi lại record buổi họp để anh/chị tiện xem lại: [Link Sider]\n\nAnh/chị hỗ trợ em hoàn thiện Bản khảo sát + File kiến thức. Sau khi nhận đủ thông tin, bên em sẽ tổng hợp và setup AI test trong khoảng 3–5 ngày để gửi anh/chị test nhé.\n\n- Link đăng nhập hệ thống: https://retion.ai/\n- Docs hướng dẫn: https://bbh.gitbook.io/bot-ban-hang-docs\n- Mẫu kiến thức: https://docs.google.com/spreadsheets/d/1hLnX21ibVpiklAcj7cx6qwnkiSMIKWKKR_Go3Vv3oNo/edit?usp=sharing\n\n- Link điền kiến thức và khảo sát: https://docs.google.com/spreadsheets/d/1-xlSVKJkLcELkM7nPyuUVNqnSvo6NIYyvZvP36XhQGQ/edit?usp=sharing\n\n📌 Buổi tiếp theo: [Khung giờ] ngày … – Hướng dẫn sử dụng hệ thống Retion.\n\nTrong quá trình thực hiện, nếu có thắc mắc hoặc phần nào chưa rõ, anh/chị cứ nhắn trực tiếp lên nhóm để em hỗ trợ anh/chị nha."} />
+              <CopyBox title="Mẫu gửi sau buổi Kick-off" text={"Cảm ơn anh/chị @KH đã tham gia buổi triển khai hôm nay ạ.\\n\\nEm gửi lại record buổi họp để anh/chị tiện xem lại: [Link Sider]\\n\\nAnh/chị hỗ trợ em hoàn thiện Bản khảo sát + File kiến thức. Sau khi nhận đủ thông tin, bên em sẽ tổng hợp và setup AI test trong khoảng 3–5 ngày để gửi anh/chị test nhé.\\n\\n- Link đăng nhập hệ thống: https://retion.ai/\\n- Docs hướng dẫn: https://bbh.gitbook.io/bot-ban-hang-docs\\n- Mẫu kiến thức: https://docs.google.com/spreadsheets/d/1hLnX21ibVpiklAcj7cx6qwnkiSMIKWKKR_Go3Vv3oNo/edit?usp=sharing\\n\\n- Link điền kiến thức và khảo sát: https://docs.google.com/spreadsheets/d/1-xlSVKJkLcELkM7nPyuUVNqnSvo6NIYyvZvP36XhQGQ/edit?usp=sharing\\n\\n📌 Buổi tiếp theo: [Khung giờ] ngày … – Hướng dẫn sử dụng hệ thống Retion.\\n\\nTrong quá trình thực hiện, nếu có thắc mắc hoặc phần nào chưa rõ, anh/chị cứ nhắn trực tiếp lên nhóm để em hỗ trợ anh/chị nha."} />
               
               <CheckItem id="ii_1_3">Clear với khách các thông tin ngay từ ban đầu</CheckItem>
               <CheckItem id="ii_1_4">Note lại thông tin gói lên nhóm Retion (ID Qtv, ID tổ chức…)</CheckItem>
@@ -144,7 +146,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
               <CheckItem id="ii_2_1">Thêm tài khoản của support vào tổ chức của khách để lấy hội thoại làm prompt, test AI</CheckItem>
               <CopyBox title="Mẫu gửi Link Meeting Buổi 2" text={"Em gửi anh/chị link meeting hôm nay ạ [Link ggmeet]"} />
               <CheckItem id="ii_2_2">Tiến hành meeting buổi 2, điền đủ thông tin và yêu cầu khách xác nhận vào sheet Lộ trình triển khai</CheckItem>
-              <CopyBox title="Mẫu gửi sau khi xong Buổi 2" text={"Dạ em cảm ơn anh/chị @KH đã tham gia buổi hướng dẫn hôm nay ạ.\n\n🎥 Record buổi họp : [Link sider]\n\nAnh/chị hỗ trợ em chuẩn bị thêm:\n- Rep comment (Khi khách vào từ bài viết): 3 câu rep Comment + 1 tin nhắn gửi khách + Kịch bản chăm sóc khách hàng khi chưa phản hồi\n-> Mẫu chuỗi CSKH: https://docs.google.com/spreadsheets/d/1k9_069Hk438cpVaQAt2SCoRPU6f800Bza5KxEfXZ4ac/edit?gid=1779037664#gid=1779037664\n\nCó phần nào chưa rõ, anh/chị cứ nhắn trực tiếp lên nhóm để em hỗ trợ nhé."} />
+              <CopyBox title="Mẫu gửi sau khi xong Buổi 2" text={"Dạ em cảm ơn anh/chị @KH đã tham gia buổi hướng dẫn hôm nay ạ.\\n\\n🎥 Record buổi họp : [Link sider]\\n\\nAnh/chị hỗ trợ em chuẩn bị thêm:\\n- Rep comment (Khi khách vào từ bài viết): 3 câu rep Comment + 1 tin nhắn gửi khách + Kịch bản chăm sóc khách hàng khi chưa phản hồi\\n-> Mẫu chuỗi CSKH: https://docs.google.com/spreadsheets/d/1k9_069Hk438cpVaQAt2SCoRPU6f800Bza5KxEfXZ4ac/edit?gid=1779037664#gid=1779037664\\n\\nCó phần nào chưa rõ, anh/chị cứ nhắn trực tiếp lên nhóm để em hỗ trợ nhé."} />
             </div>
           </div>
           <div>
@@ -153,7 +155,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
               <CheckItem id="ii_3_1">Gửi file mẫu kiến thức mô tả chi tiết cho khách và hướng dẫn cách điền</CheckItem>
               <CheckItem id="ii_3_2">Xác nhận rõ ai là người phụ trách làm kiến thức ở phía khách hàng</CheckItem>
               <CheckItem id="ii_3_3">Deadline khách điền kiến thức: 03 - 05 ngày (báo rõ với khách)</CheckItem>
-              <CopyBox title="Mẫu CSKH hằng ngày (Khách đang làm kiến thức)" text={"1. @KH Dạ em chào anh __. Trong quá trình hoàn thiện Bản khảo sát và File kiến thức, nếu có nội dung nào chưa rõ hoặc cần em hỗ trợ, anh/chị cứ nhắn lên nhóm để em hỗ trợ anh/chị nhé.\nSau khi nhận đủ thông tin, em sẽ tổng hợp và tiến hành setup AI bản test trong khoảng 3–5 ngày ạ.\n\n2. @KH Anh/chị ơi, file kiến thức mình cập nhật bổ sung lại chưa anh/chị ha. Có thắc mắc phần nào nhắn lên để em hỗ trợ anh/chị để triển khai AI sớm nhất ạ.\n\n3. Chào anh @KH, trong quá trình điền file kiến thức, có phần nào thắc mắc nhắn em hỗ trợ anh/chị nha."} />
+              <CopyBox title="Mẫu CSKH hằng ngày (Khách đang làm kiến thức)" text={"1. @KH Dạ em chào anh __. Trong quá trình hoàn thiện Bản khảo sát và File kiến thức, nếu có nội dung nào chưa rõ hoặc cần em hỗ trợ, anh/chị cứ nhắn lên nhóm để em hỗ trợ anh/chị nhé.\\nSau khi nhận đủ thông tin, em sẽ tổng hợp và tiến hành setup AI bản test trong khoảng 3–5 ngày ạ.\\n\\n2. @KH Anh/chị ơi, file kiến thức mình cập nhật bổ sung lại chưa anh/chị ha. Có thắc mắc phần nào nhắn lên để em hỗ trợ anh/chị để triển khai AI sớm nhất ạ.\\n\\n3. Chào anh @KH, trong quá trình điền file kiến thức, có phần nào thắc mắc nhắn em hỗ trợ anh/chị nha."} />
               <CheckItem id="ii_3_4">Gắn tag: <strong className="text-purple-600">DV – CB Kiến Thức</strong></CheckItem>
             </div>
           </div>
@@ -167,7 +169,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
           <div>
             <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">5. Tạo page demo & test AI (3-5 ngày)</h4>
             <div className="flex flex-col gap-0.5">
-              <CopyBox title="Mẫu Xác nhận khi nhận đủ kiến thức" text={"Em nhận được file kiến thức của anh/chị rồi nha.\nEm sẽ tiến hành setup AI trên page test anh/chị nhé, thời gian setup từ 3-5 ngày ạ. Khi hoàn thiện em sẽ gửi anh/chị [Tên KH] ngay ạ."} />
+              <CopyBox title="Mẫu Xác nhận khi nhận đủ kiến thức" text={"Em nhận được file kiến thức của anh/chị rồi nha.\\nEm sẽ tiến hành setup AI trên page test anh/chị nhé, thời gian setup từ 3-5 ngày ạ. Khi hoàn thiện em sẽ gửi anh/chị [Tên KH] ngay ạ."} />
               <CheckItem id="ii_5_1">Tạo page demo và Gắn tag <strong className="text-amber-600">DV – Set AI</strong></CheckItem>
               <CheckItem id="ii_5_2">Giả lập lại 30-50 tình huống tư vấn thực tế và điều chỉnh prompt - Chụp bằng chứng test đưa lên timeboxing</CheckItem>
               <CheckItem id="ii_5_3">Gửi lên nhóm Hậu Kiểm kiểm tra đánh giá trước khi gửi khách</CheckItem>
@@ -181,7 +183,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
               <CheckItem id="ii_6_2">Theo dõi sát và xử lý các tình huống: khách phản hồi, cần quay video test mẫu, gửi báo cáo tiến độ</CheckItem>
               <CheckItem id="ii_6_3">Gắn tag <strong className="text-amber-600">DV – Test AI</strong></CheckItem>
               <CheckItem id="ii_6_4">Xác nhận đưa lên triển khai ở page chính. Trao đổi nhanh 15p về các lưu ý.</CheckItem>
-              <CopyBox title="Mẫu Thông báo đưa lên Page Chính" text={"Dạ hôm nay em sẽ tiến hành thiết lập và đưa AI sang page chính cho anh/chị ạ.\n\nSau khi hoàn tất cài đặt và kiểm tra, em sẽ thông báo lên nhóm để mọi người tiện theo dõi nha."} />
+              <CopyBox title="Mẫu Thông báo đưa lên Page Chính" text={"Dạ hôm nay em sẽ tiến hành thiết lập và đưa AI sang page chính cho anh/chị ạ.\\n\\nSau khi hoàn tất cài đặt và kiểm tra, em sẽ thông báo lên nhóm để mọi người tiện theo dõi nha."} />
             </div>
           </div>
         </div>
@@ -195,7 +197,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
             <CheckItem id="iii_2">Sau khi cài lên page chính tiếp tục gửi lên nhóm Hậu Kiểm kiểm tra</CheckItem>
             <CheckItem id="iii_3">Chủ động theo dõi AI trên page hằng ngày (kiểm tra khách có SĐT, chưa phản hồi)</CheckItem>
             <CheckItem id="iii_4">Gửi báo cáo đầu tuần & cuối tuần. Chủ động hỏi thăm khách theo đúng tag giai đoạn.</CheckItem>
-            <CopyBox title="Mẫu CSKH đầu tháng/giữa tháng" text={"@All Dạ em chào anh/chị tháng mới ạ\n\nThời gian qua AI bên mình tư vấn khách hàng có ổn định không ạ? Nếu có điểm nào chưa phù hợp, anh/chị phản hồi để bên em hỗ trợ tối ưu thêm nhé.\n\nAI V3 hiện đã nâng cấp: phân tích hình ảnh tốt hơn, trả lời ngắn gọn – tự nhiên hơn, đồng thời ghi nhớ thông tin khách hàng và sản phẩm đã tư vấn để hỗ trợ xuyên suốt cuộc trò chuyện ạ."} />
+            <CopyBox title="Mẫu CSKH đầu tháng/giữa tháng" text={"@All Dạ em chào anh/chị tháng mới ạ\\n\\nThời gian qua AI bên mình tư vấn khách hàng có ổn định không ạ? Nếu có điểm nào chưa phù hợp, anh/chị phản hồi để bên em hỗ trợ tối ưu thêm nhé.\\n\\nAI V3 hiện đã nâng cấp: phân tích hình ảnh tốt hơn, trả lời ngắn gọn – tự nhiên hơn, đồng thời ghi nhớ thông tin khách hàng và sản phẩm đã tư vấn để hỗ trợ xuyên suốt cuộc trò chuyện ạ."} />
           </div>
           <div className="mt-2 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 p-3 rounded text-sm">
             <strong>Trường hợp lỗi nhiều:</strong> Nếu AI phát sinh lỗi liên tiếp do thiếu kiến thức/prompt (từ 3 lần trở lên), thông báo khách tạm dừng ở page chính, chuyển về page test 2 ngày để điều chỉnh.
@@ -207,7 +209,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
         <h3 className="font-bold text-base text-indigo-700 dark:text-indigo-400 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">IV. BÀN GIAO & NGHIỆM THU</h3>
         <div className="space-y-4 pl-2">
           <p className="font-medium italic text-slate-500 text-sm">Cách ngày kết thúc dịch vụ 3-4 ngày chuẩn bị trước các phần bàn giao và hẹn lịch hướng dẫn trước 1 ngày (Buổi 3)</p>
-          <CopyBox title="Mẫu Hẹn lịch Buổi 3 (Bàn giao & Nghiệm thu)" text={"@KH Dạ anh/chị ơi, [Thứ_ ] tuần tới mình có trống lịch buổi nào không ạ, để em triển khai Buổi 3 – Hướng dẫn các tính năng nâng cao trên hệ thống và bàn giao AI cho mình nhé.\n\nBuổi này bên em sẽ hỗ trợ anh/chị:\n- Hướng dẫn các tính năng : Trợ lý ảo nội bộ, huấn luyện bài viết, chỉnh sửa & tối ưu, tự động gắn thẻ hội thoại bằng AI và thống kê.\n- Review lại toàn bộ các hạng mục đã triển khai.\n- Giải đáp và hỗ trợ các nội dung cần điều chỉnh.\n- Hướng dẫn bàn giao, kiểm tra và xác nhận nghiệm thu hệ thống.\n\nAnh/Chị sắp xếp giúp em thời gian phù hợp, em chủ động gửi lịch meeting cho mình ạ."} />
+          <CopyBox title="Mẫu Hẹn lịch Buổi 3 (Bàn giao & Nghiệm thu)" text={"@KH Dạ anh/chị ơi, [Thứ_ ] tuần tới mình có trống lịch buổi nào không ạ, để em triển khai Buổi 3 – Hướng dẫn các tính năng nâng cao trên hệ thống và bàn giao AI cho mình nhé.\\n\\nBuổi này bên em sẽ hỗ trợ anh/chị:\\n- Hướng dẫn các tính năng : Trợ lý ảo nội bộ, huấn luyện bài viết, chỉnh sửa & tối ưu, tự động gắn thẻ hội thoại bằng AI và thống kê.\\n- Review lại toàn bộ các hạng mục đã triển khai.\\n- Giải đáp và hỗ trợ các nội dung cần điều chỉnh.\\n- Hướng dẫn bàn giao, kiểm tra và xác nhận nghiệm thu hệ thống.\\n\\nAnh/Chị sắp xếp giúp em thời gian phù hợp, em chủ động gửi lịch meeting cho mình ạ."} />
           
           <div>
             <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">1. Bàn giao</h4>
@@ -249,3 +251,7 @@ export function SOPGuide({ customer }: { customer: Customer }) {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/components/SOPGuide.tsx', content, 'utf8');
+
