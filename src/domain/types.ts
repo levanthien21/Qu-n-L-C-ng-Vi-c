@@ -175,6 +175,7 @@ export interface Customer {
   createdAt: string;
   completedAt?: string;
   isDemo?: boolean;
+  sopChecklist?: Record<string, boolean>;
 }
 
 export interface Settings {

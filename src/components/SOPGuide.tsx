@@ -1,128 +1,141 @@
-import { ExternalLink, AlertTriangle } from 'lucide-react';
+import { ExternalLink, AlertTriangle, CheckSquare, Square } from 'lucide-react';
+import { useStore } from '../store/useStore';
+import { Customer } from '../domain/types';
+import { ProgressBar } from './ui';
 
-export function SOPGuide() {
+export function SOPGuide({ customer }: { customer: Customer }) {
+  const updateCustomer = useStore(s => s.updateCustomer);
+  const checklist = customer.sopChecklist || {};
+
+  // Define total items for the progress bar calculation
+  const totalItems = 38; // Pre-counted all actionable CheckItems
+  const completedItems = Object.values(checklist).filter(v => v).length;
+  const percent = Math.round((completedItems / totalItems) * 100) || 0;
+
+  const CheckItem = ({ id, children }: { id: string, children: React.ReactNode }) => {
+    const isChecked = checklist[id] || false;
+    const toggle = () => {
+      const newChecklist = { ...checklist, [id]: !isChecked };
+      updateCustomer(customer.id, { sopChecklist: newChecklist });
+    };
+    return (
+      <label className="flex items-start gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1.5 rounded -ml-1.5 transition-colors group">
+        <div className="mt-0.5 text-indigo-500 shrink-0">
+          {isChecked ? <CheckSquare size={16} className="text-emerald-500" /> : <Square size={16} className="text-slate-300 dark:text-slate-600 group-hover:text-indigo-400" />}
+        </div>
+        <span className={`text-sm ${isChecked ? "line-through text-slate-400 dark:text-slate-500" : "text-slate-700 dark:text-slate-200"}`}>
+          {children}
+        </span>
+      </label>
+    );
+  };
+
   return (
     <div className="space-y-8 p-2">
       <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800">
         <h2 className="text-lg font-bold text-indigo-800 dark:text-indigo-300 text-center uppercase">Quy trình triển khai dịch vụ huấn luyện AI (DVHL AI)</h2>
-        <p className="text-center text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1">(Thời gian triển khai: 30 ngày)</p>
+        <p className="text-center text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1 mb-4">(Thời gian triển khai: 30 ngày)</p>
+        
+        <div className="bg-white dark:bg-slate-900 p-3 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700/50">
+           <div className="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+             <span>Tiến độ hoàn thành SOP (Checklist)</span>
+             <span className={percent === 100 ? "text-emerald-600" : "text-indigo-600"}>{completedItems}/{totalItems} ({percent}%)</span>
+           </div>
+           <ProgressBar percent={percent} tone={percent === 100 ? 'green' : 'indigo'} />
+        </div>
       </div>
 
       <section>
         <h3 className="font-bold text-base text-indigo-700 dark:text-indigo-400 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">I. NHẬN THÔNG TIN & CHUẨN BỊ (TỐI ĐA 1 NGÀY)</h3>
-        <div className="space-y-4 pl-2 text-sm text-slate-700 dark:text-slate-300">
+        <div className="space-y-4 pl-2">
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">1. Nhận thông tin khách hàng</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Tiếp nhận khách hàng từ nhóm Support nội bộ</li>
-              <li>Vào nhóm chào hỏi và giới thiệu, hẹn lịch hỗ trợ trong vòng 15 phút ngay sau khi tiếp nhận</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">2. Ghi chú & quản lý nội bộ</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Tạo ghi chú các chức năng cần triển khai lên nhóm triển khai Retion</li>
-              <li>Ghi chú gói DVHL, thời gian bắt đầu thời gian kết thúc</li>
-              <li>Gắn tag <strong className="text-red-500">DV-Gets</strong> cho nhóm vừa ghi chú</li>
-              <li>Điền đầy đủ thông tin khách hàng vào link: <a href="https://docs.google.com/spreadsheets/d/1Mt_B9rm6w5xHyzRyu5Cv0RmTUNP0Uj80fzAGQrbvT9s/edit?gid=0#gid=0" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">Khách hàng - DV Huấn Luyện AI <ExternalLink size={12}/></a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">3. Chuẩn bị & tạo file gửi khách hàng</h4>
-            <p className="mt-1 mb-1 font-medium">Tạo đầy đủ các file sau:</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Sheet tổng hợp bao gồm: Timeline triển khai, Kiến thức AI</li>
-              <li>Link tổng hợp triển khai dự án: <a href="https://docs.google.com/spreadsheets/d/1hFg3ujhJCsyjjU5e7QCmODrphrwqF0VTb_gy0aGQHYc/edit?gid=2092336761#gid=2092336761" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">[Tên nhóm] - gói DVHL <ExternalLink size={12}/></a> (Ghim link lên CRM theo ID sale cung cấp)</li>
-              <li>Prompt AI (Không gửi cho khách): <a href="https://docs.google.com/document/d/1POSTXOZP34gJjZ5Of0gp5mXguztvdRI2TycOqZZHRO4/edit?tab=t.0" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">Prompt mẫu v2.1 <ExternalLink size={12}/></a></li>
-              <li>Tham khảo thêm: <a href="https://docs.google.com/document/d/12ulZ_vUYK2rLOeyyFG6Ie_wpJA1sZrI5YTCzA_W6m8A/edit?tab=t.w4wm4cpij7i6" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">DANH SÁCH PROMPT MẪU <ExternalLink size={12}/></a></li>
-            </ul>
-            <div className="mt-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 rounded">
-              <span className="font-semibold text-amber-800 dark:text-amber-400 block mb-1">Lưu ý về Prompt AI bắt buộc phải có:</span>
-              <ul className="list-disc pl-5 space-y-0.5 text-amber-900 dark:text-amber-200">
-                <li>Thông tin doanh nghiệp, STK / thông tin thanh toán</li>
-                <li>Cách chào hỏi, Cách xưng hô, Quy tắc tư vấn</li>
-                <li>Bảo mật, không cung cấp thông tin nội bộ</li>
-                <li>Không tự ý bịa thông tin khuyến mãi, giá tiền</li>
-              </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">1. Nhận thông tin khách hàng</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="i_1_1">Tiếp nhận khách hàng từ nhóm Support nội bộ</CheckItem>
+              <CheckItem id="i_1_2">Vào nhóm chào hỏi và giới thiệu, hẹn lịch hỗ trợ trong vòng 15 phút ngay sau khi tiếp nhận</CheckItem>
             </div>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">4. Phân bổ & sắp xếp công việc</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Phân bổ thứ tự công việc rõ ràng</li>
-              <li>Gắn tag theo từng giai đoạn trong DVHL</li>
-            </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">2. Ghi chú & quản lý nội bộ</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="i_2_1">Tạo ghi chú các chức năng cần triển khai lên nhóm triển khai Retion</CheckItem>
+              <CheckItem id="i_2_2">Ghi chú gói DVHL, thời gian bắt đầu thời gian kết thúc</CheckItem>
+              <CheckItem id="i_2_3">Gắn tag <strong className="text-red-500">DV-Gets</strong> cho nhóm vừa ghi chú</CheckItem>
+              <CheckItem id="i_2_4">Điền đầy đủ thông tin khách hàng vào link: <a href="https://docs.google.com/spreadsheets/d/1Mt_B9rm6w5xHyzRyu5Cv0RmTUNP0Uj80fzAGQrbvT9s/edit?gid=0#gid=0" target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-blue-600 hover:underline inline-flex items-center gap-1">Khách hàng - DV Huấn Luyện AI <ExternalLink size={12}/></a></CheckItem>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">3. Chuẩn bị & tạo file gửi khách hàng</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="i_3_1">Tạo Sheet tổng hợp bao gồm: Timeline triển khai, Kiến thức AI</CheckItem>
+              <CheckItem id="i_3_2">Tạo Link tổng hợp triển khai dự án (Ghim link lên CRM theo ID sale cung cấp)</CheckItem>
+              <CheckItem id="i_3_3">Chuẩn bị Prompt AI (Không gửi cho khách) dựa trên Prompt mẫu và tuân thủ các quy tắc bảo mật, thông tin thanh toán</CheckItem>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">4. Phân bổ & sắp xếp công việc</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="i_4_1">Phân bổ thứ tự công việc rõ ràng</CheckItem>
+              <CheckItem id="i_4_2">Gắn tag theo từng giai đoạn trong DVHL</CheckItem>
+            </div>
           </div>
         </div>
       </section>
 
       <section>
         <h3 className="font-bold text-base text-indigo-700 dark:text-indigo-400 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">II. TRIỂN KHAI BAN ĐẦU (TỐI ĐA 07 - 10 NGÀY)</h3>
-        <div className="space-y-4 pl-2 text-sm text-slate-700 dark:text-slate-300">
+        <div className="space-y-4 pl-2">
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">1. Khảo sát, phân tích & nâng cấp gói (Tối đa 1 ngày)</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Buổi meeting đầu tiên tiến hành khảo sát theo phần kick-off: <a href="https://docs.google.com/spreadsheets/d/1hFg3ujhJCsyjjU5e7QCmODrphrwqF0VTb_gy0aGQHYc/edit?gid=1978371240#gid=1978371240" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">[Tên nhóm] - gói DVHL <ExternalLink size={12}/></a></li>
-              <li>Sau meeting: điền đầy đủ ngày tháng vào timeline - Gửi tin nhắn xác nhận lên nhóm kèm record.</li>
-              <li>Clear với khách các thông tin: <a href="https://docs.google.com/document/d/1mHlnJqAFat1xOakt2HfUpUPjnWYipBmyuMFPjt-Ff8s/edit?tab=t.b19zt2eup5v4" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">Clear với khách từ ban đầu <ExternalLink size={12}/></a></li>
-              <li>Note lại thông tin gói lên nhóm Retion (ID Qtv, ID tổ chức…)</li>
-              <li>Nếu khách thanh toán chưa đủ: tạo nhắc lịch theo dõi thanh toán</li>
-              <li>Gắn tag <strong className="text-red-500">DV-Gets</strong></li>
-              <li>Thông báo bắt đầu DVHL và tạo ticket DVHL</li>
-              <li>Hẹn lịch đầy đủ nhân viên để hướng dẫn sử dụng Retion (thời gian 1- 2 giờ) - Buổi 2</li>
-            </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">1. Khảo sát, phân tích & nâng cấp gói (Tối đa 1 ngày)</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="ii_1_1">Buổi meeting đầu tiên tiến hành khảo sát theo phần kick-off</CheckItem>
+              <CheckItem id="ii_1_2">Sau meeting: điền đầy đủ ngày tháng vào timeline - Gửi tin nhắn xác nhận lên nhóm kèm record.</CheckItem>
+              <CheckItem id="ii_1_3">Clear với khách các thông tin ngay từ ban đầu</CheckItem>
+              <CheckItem id="ii_1_4">Note lại thông tin gói lên nhóm Retion (ID Qtv, ID tổ chức…)</CheckItem>
+              <CheckItem id="ii_1_5">Tạo nhắc lịch theo dõi thanh toán (Nếu khách thanh toán chưa đủ)</CheckItem>
+              <CheckItem id="ii_1_6">Thông báo bắt đầu DVHL và tạo ticket DVHL</CheckItem>
+              <CheckItem id="ii_1_7">Hẹn lịch đầy đủ nhân viên để hướng dẫn sử dụng Retion (Buổi 2)</CheckItem>
+            </div>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">2. Chuẩn bị môi trường & tài khoản (Ngay sau khảo sát)</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Thêm tài khoản của support vào tổ chức của khách để lấy hội thoại làm prompt, test AI</li>
-              <li>Tiến hành meeting buổi 2, điền đủ thông tin và yêu cầu khách xác nhận vào sheet Lộ trình triển khai</li>
-            </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">2. Chuẩn bị môi trường & tài khoản (Ngay sau khảo sát)</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="ii_2_1">Thêm tài khoản của support vào tổ chức của khách để lấy hội thoại làm prompt, test AI</CheckItem>
+              <CheckItem id="ii_2_2">Tiến hành meeting buổi 2, điền đủ thông tin và yêu cầu khách xác nhận vào sheet Lộ trình triển khai</CheckItem>
+            </div>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">3. Chuẩn bị file training AI</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Gửi file mẫu kiến thức mô tả chi tiết cho khách và hướng dẫn cách điền</li>
-              <li>Xác nhận rõ ai là người phụ trách làm kiến thức ở phía khách hàng</li>
-              <li>Deadline khách điền kiến thức: 03 - 05 ngày (báo rõ với khách)</li>
-              <li>Gắn tag: <strong className="text-purple-600">DV – CB Kiến Thức</strong></li>
-            </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">3. Chuẩn bị file training AI</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="ii_3_1">Gửi file mẫu kiến thức mô tả chi tiết cho khách và hướng dẫn cách điền</CheckItem>
+              <CheckItem id="ii_3_2">Xác nhận rõ ai là người phụ trách làm kiến thức ở phía khách hàng</CheckItem>
+              <CheckItem id="ii_3_3">Deadline khách điền kiến thức: 03 - 05 ngày (báo rõ với khách)</CheckItem>
+              <CheckItem id="ii_3_4">Gắn tag: <strong className="text-purple-600">DV – CB Kiến Thức</strong></CheckItem>
+            </div>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">4. Xây dựng Prompt AI</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Xin thông tin quy trình tư vấn bán hàng, thông tin nội bộ, trường hợp đặc biệt… của khách</li>
-              <li>Support làm prompt theo thông tin đã nhận (Gắn tag DV – Prompt)</li>
-            </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">4. Xây dựng Prompt AI</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="ii_4_1">Xin thông tin quy trình tư vấn bán hàng, thông tin nội bộ, trường hợp đặc biệt… của khách</CheckItem>
+              <CheckItem id="ii_4_2">Support làm prompt theo thông tin đã nhận (Gắn tag DV – Prompt)</CheckItem>
+            </div>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">5. Tạo page demo & test AI (3-5 ngày)</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Tạo page demo (Deadline SP: 03 - 05 ngày - báo khách ngày sẽ gửi test)</li>
-              <li>Gắn tag <strong className="text-amber-600">DV – Set AI</strong> (Hoặc DV - Test AI)</li>
-              <li>Giả lập lại 30-50 tình huống tư vấn thực tế và điều chỉnh prompt - Chụp bằng chứng test đưa lên timeboxing</li>
-              <li>Khi test xong đưa link test vào báo cáo kèm số lượng hội thoại</li>
-              <li>Thông báo lên nhóm đang test AI thời gian 3-5 ngày</li>
-              <li className="font-medium text-amber-600 dark:text-amber-400">Lưu ý: Trước khi gửi khách test phải gửi lên nhóm Hậu Kiểm. Sau khi Audit đánh giá đạt mới được gửi khách.</li>
-            </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">5. Tạo page demo & test AI (3-5 ngày)</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="ii_5_1">Tạo page demo và Gắn tag <strong className="text-amber-600">DV – Set AI</strong></CheckItem>
+              <CheckItem id="ii_5_2">Giả lập lại 30-50 tình huống tư vấn thực tế và điều chỉnh prompt - Chụp bằng chứng test đưa lên timeboxing</CheckItem>
+              <CheckItem id="ii_5_3">Gửi lên nhóm Hậu Kiểm kiểm tra đánh giá trước khi gửi khách</CheckItem>
+              <CheckItem id="ii_5_4">Đưa link test vào báo cáo kèm số lượng hội thoại</CheckItem>
+            </div>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">6. Test AI với khách hàng</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Gửi page demo cho khách, báo khách hỗ trợ test quy trình cùng (Khuyên khách test trên tâm thế người mua hàng)</li>
-              <li>Nếu AI phát sinh lỗi nhiều: báo khách tạm ngưng, quay lại quy trình test 1-2 ngày</li>
-              <li>Tăng cường test để hoàn thiện trong 2-3 ngày</li>
-              <li>Gắn tag <strong className="text-amber-600">DV – Test AI</strong></li>
-              <li>Xác nhận đưa lên triển khai ở page chính. Trao đổi nhanh 15p về các lưu ý.</li>
-            </ul>
-            <div className="mt-2 bg-slate-100 dark:bg-slate-800 p-3 rounded space-y-2">
-              <p className="font-semibold">Các tình huống xử lý:</p>
-              <ul className="space-y-1">
-                <li><strong>TH1: Khách phối hợp test:</strong> Nhận góp ý → điều chỉnh → cho test tiếp (cần giả lập thêm).</li>
-                <li><strong>TH2: Khách không phối hợp:</strong> Quay video test AI. Đưa số liệu cụ thể (Bao nhiêu khách, bao nhiêu hội thoại) và hỏi khách đã đưa lên page chính được chưa.</li>
-                <li><strong>TH3: Khách không đồng nhất ý kiến:</strong> Dựa trên form khảo sát mong muốn AI để điều chỉnh.</li>
-                <li><strong>TH4: Khách cố tình làm khó:</strong> Luôn đưa ra số liệu test cụ thể làm căn cứ. Gửi báo cáo tiến độ.</li>
-              </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">6. Test AI với khách hàng</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="ii_6_1">Gửi page demo cho khách, báo khách hỗ trợ test quy trình cùng (Khuyên khách test trên tâm thế người mua hàng)</CheckItem>
+              <CheckItem id="ii_6_2">Theo dõi sát và xử lý các tình huống: khách phản hồi, cần quay video test mẫu, gửi báo cáo tiến độ</CheckItem>
+              <CheckItem id="ii_6_3">Gắn tag <strong className="text-amber-600">DV – Test AI</strong></CheckItem>
+              <CheckItem id="ii_6_4">Xác nhận đưa lên triển khai ở page chính. Trao đổi nhanh 15p về các lưu ý.</CheckItem>
             </div>
           </div>
         </div>
@@ -130,15 +143,14 @@ export function SOPGuide() {
 
       <section>
         <h3 className="font-bold text-base text-indigo-700 dark:text-indigo-400 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">III. TRIỂN KHAI THỰC TẾ</h3>
-        <div className="space-y-2 pl-2 text-sm text-slate-700 dark:text-slate-300">
-          <p>Gắn tag <strong className="text-blue-600">DV – Actual Run</strong></p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Sau khi cài lên page chính tiếp tục gửi lên nhóm Hậu Kiểm kiểm tra</li>
-            <li>Chủ động theo dõi AI trên page hằng ngày</li>
-            <li>Kiểm tra hội thoại AI theo 2 điều kiện: Khách có SĐT & Khách chưa phản hồi</li>
-            <li>Gửi báo cáo đầu tuần & cuối tuần. Chủ động hỏi thăm khách theo đúng tag giai đoạn.</li>
-          </ul>
-          <div className="mt-2 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 p-3 rounded">
+        <div className="space-y-2 pl-2">
+          <div className="flex flex-col gap-0.5">
+            <CheckItem id="iii_1">Gắn tag <strong className="text-blue-600">DV – Actual Run</strong></CheckItem>
+            <CheckItem id="iii_2">Sau khi cài lên page chính tiếp tục gửi lên nhóm Hậu Kiểm kiểm tra</CheckItem>
+            <CheckItem id="iii_3">Chủ động theo dõi AI trên page hằng ngày (kiểm tra khách có SĐT, chưa phản hồi)</CheckItem>
+            <CheckItem id="iii_4">Gửi báo cáo đầu tuần & cuối tuần. Chủ động hỏi thăm khách theo đúng tag giai đoạn.</CheckItem>
+          </div>
+          <div className="mt-2 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 p-3 rounded text-sm">
             <strong>Trường hợp lỗi nhiều:</strong> Nếu AI phát sinh lỗi liên tiếp do thiếu kiến thức/prompt (từ 3 lần trở lên), thông báo khách tạm dừng ở page chính, chuyển về page test 2 ngày để điều chỉnh.
           </div>
         </div>
@@ -146,38 +158,37 @@ export function SOPGuide() {
 
       <section>
         <h3 className="font-bold text-base text-indigo-700 dark:text-indigo-400 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">IV. BÀN GIAO & NGHIỆM THU</h3>
-        <div className="space-y-4 pl-2 text-sm text-slate-700 dark:text-slate-300">
-          <p className="font-medium italic text-slate-500">Cách ngày kết thúc dịch vụ 3-4 ngày chuẩn bị trước các phần bàn giao và hẹn lịch hướng dẫn trước 1 ngày (Buổi 3)</p>
+        <div className="space-y-4 pl-2">
+          <p className="font-medium italic text-slate-500 text-sm">Cách ngày kết thúc dịch vụ 3-4 ngày chuẩn bị trước các phần bàn giao và hẹn lịch hướng dẫn trước 1 ngày (Buổi 3)</p>
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">1. Bàn giao</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Hướng dẫn chỉnh sửa & tối ưu AI</li>
-              <li>Hướng dẫn huấn luyện bài viết</li>
-              <li>Hướng dẫn điều chỉnh Chatbot</li>
-              <li>Hướng dẫn sử dụng GHL</li>
-            </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">1. Bàn giao</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="iv_1_1">Hướng dẫn chỉnh sửa & tối ưu AI</CheckItem>
+              <CheckItem id="iv_1_2">Hướng dẫn huấn luyện bài viết</CheckItem>
+              <CheckItem id="iv_1_3">Hướng dẫn điều chỉnh Chatbot & sử dụng GHL</CheckItem>
+            </div>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 dark:text-slate-100">2. Nghiệm thu</h4>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Yêu cầu khách xác nhận bảng nghiệm thu</li>
-              <li>Khoá các sheet khách đã xác nhận</li>
-              <li>Điền đầy đủ thông tin vào file khách hàng: <a href="https://docs.google.com/spreadsheets/d/1Mt_B9rm6w5xHyzRyu5Cv0RmTUNP0Uj80fzAGQrbvT9s/edit?gid=0#gid=0" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">Khách hàng - DV Huấn Luyện AI <ExternalLink size={12}/></a></li>
-              <li>Gửi báo cáo lên nhóm hậu kiểm và xin ý kiến khách hàng</li>
-              <li>Gắn tag <strong className="text-emerald-600">DV – Done</strong></li>
-            </ul>
+            <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">2. Nghiệm thu</h4>
+            <div className="flex flex-col gap-0.5">
+              <CheckItem id="iv_2_1">Yêu cầu khách xác nhận bảng nghiệm thu</CheckItem>
+              <CheckItem id="iv_2_2">Khoá các sheet khách đã xác nhận</CheckItem>
+              <CheckItem id="iv_2_3">Điền đầy đủ thông tin vào file khách hàng (GG Sheet tổng)</CheckItem>
+              <CheckItem id="iv_2_4">Gửi báo cáo lên nhóm hậu kiểm và xin ý kiến khách hàng</CheckItem>
+              <CheckItem id="iv_2_5">Gắn tag <strong className="text-emerald-600">DV – Done</strong></CheckItem>
+            </div>
           </div>
         </div>
       </section>
 
       <section>
         <h3 className="font-bold text-base text-indigo-700 dark:text-indigo-400 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">V. BÁO CÁO & HẬU KIỂM</h3>
-        <div className="space-y-2 pl-2 text-sm text-slate-700 dark:text-slate-300">
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Lưu toàn bộ báo cáo, phản hồi khách hàng</li>
-            <li>Tổng hợp đánh giá để cải tiến quy trình nội bộ</li>
-          </ul>
-          <div className="mt-4 p-3 bg-slate-100 dark:bg-slate-800 rounded border-l-4 border-slate-500">
+        <div className="space-y-2 pl-2">
+          <div className="flex flex-col gap-0.5">
+            <CheckItem id="v_1">Lưu toàn bộ báo cáo, phản hồi khách hàng</CheckItem>
+            <CheckItem id="v_2">Tổng hợp đánh giá để cải tiến quy trình nội bộ</CheckItem>
+          </div>
+          <div className="mt-4 p-3 bg-slate-100 dark:bg-slate-800 rounded border-l-4 border-slate-500 text-sm">
             <p className="font-bold flex items-center gap-1 mb-2"><AlertTriangle size={16}/> LƯU Ý QUAN TRỌNG:</p>
             <ul className="list-disc pl-5 space-y-2">
               <li>Các trường hợp khách không phản hồi, không hợp tác test… thời gian quá 15 ngày. Sau khi đã báo sale và nhắn lên nhóm tiến hành tạm thời đóng ticket.</li>

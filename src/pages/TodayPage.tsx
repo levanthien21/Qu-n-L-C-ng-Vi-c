@@ -33,7 +33,7 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
         
         <div className="p-4 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900">
           {activeTab === 'sop' ? (
-             <SOPGuide />
+             <SOPGuide customer={customer} />
           ) : (
             <>
           {stats.milestones.length > 0 && (
