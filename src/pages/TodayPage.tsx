@@ -45,6 +45,8 @@ export default function TodayPage() {
   const [detailCustomerId, setDetailCustomerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
+  const [urgency, setUrgency] = useState("ALL");
+  const [sortBy, setSortBy] = useState("default");
 
   
   const getBadgeTone = (status: string): any => {
@@ -147,14 +149,49 @@ export default function TodayPage() {
      return Math.round(((now - start) / (end - start)) * 100);
   };
 
-  const filteredCustomers = customers.filter(c => {
+  const calcRemaining = (c: Customer) => {
+    const st = parseSheetData(c.sheetData);
+    const done = getCustomerStatus(st) === "DV – Done";
+    const hd = addDays(st.startDate, st.durationDays);
+    return getRemainingDays(hd, done && c.completedAt ? c.completedAt : null);
+  };
+
+  const hasUpcomingMeeting = (c: Customer) =>
+    (c.meetingNotes || []).some(m => !m.done && new Date(m.date).getTime() >= Date.now() - 12 * 3600000);
+
+  const baseFiltered = customers.filter(c => {
     const stats = parseSheetData(c.sheetData);
     const status = getCustomerStatus(stats);
-    const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const q = searchTerm.trim().toLowerCase();
+    const matchSearch = !q || c.name.toLowerCase().includes(q) || (c.industry || '').toLowerCase().includes(q);
     const matchStatus = filterStatus === 'ALL' || status === filterStatus;
-    return matchSearch && matchStatus;
+    const rem = calcRemaining(c);
+    const isDoneC = status === "DV – Done";
+    let matchUrgency = true;
+    if (urgency === 'overdue') matchUrgency = !isDoneC && rem !== null && rem < 0;
+    else if (urgency === 'soon') matchUrgency = !isDoneC && rem !== null && rem >= 0 && rem <= 5;
+    else if (urgency === 'meeting') matchUrgency = hasUpcomingMeeting(c);
+    return matchSearch && matchStatus && matchUrgency;
   });
-  
+
+  const filteredCustomers = [...baseFiltered].sort((a, b) => {
+    if (sortBy === 'name') return a.name.localeCompare(b.name, 'vi');
+    if (sortBy === 'deadline') {
+      const ra = calcRemaining(a); const rb = calcRemaining(b);
+      return (ra === null ? 9999 : ra) - (rb === null ? 9999 : rb);
+    }
+    return 0;
+  });
+
+  const statusCounts: Record<string, number> = {};
+  customers.forEach(c => {
+    const s = getCustomerStatus(parseSheetData(c.sheetData));
+    statusCounts[s] = (statusCounts[s] || 0) + 1;
+  });
+  const overdueCount = customers.filter(c => { const r = calcRemaining(c); return getCustomerStatus(parseSheetData(c.sheetData)) !== "DV – Done" && r !== null && r < 0; }).length;
+  const soonCount = customers.filter(c => { const r = calcRemaining(c); return getCustomerStatus(parseSheetData(c.sheetData)) !== "DV – Done" && r !== null && r >= 0 && r <= 5; }).length;
+  const meetingCount = customers.filter(hasUpcomingMeeting).length;
+
   const total = filteredCustomers.length;
   const completedCount = filteredCustomers.filter(c => getCustomerStatus(parseSheetData(c.sheetData)) === "DV – Done").length;
   const inProgressCount = total - completedCount;
@@ -206,20 +243,20 @@ export default function TodayPage() {
             return (
               <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                 <td className="p-3 align-top">
-                  <button onClick={() => setDetailCustomerId(c.id)} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-left">
+                  <button onClick={() => setDetailCustomerId(c.id)} className="text-lg font-extrabold leading-snug text-indigo-600 dark:text-indigo-400 hover:underline text-left">
                     {c.name}
                   </button>
-                  <div className="text-xs text-slate-500 mt-1">{c.industry || 'Chưa phân loại'}</div>
+                  <div className="text-sm font-medium text-slate-500 mt-1">{c.industry || 'Chưa phân loại'}</div>
                   {c.sheetLink ? (
-                    <a href={c.sheetLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-500 hover:underline mt-1">
+                    <a href={c.sheetLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-500 hover:underline mt-1">
                       Mở File Sheet <ExternalLink size={10} />
                     </a>
                   ) : (
-                    <div className="text-[11px] text-red-500 mt-1">⚠️ Chưa dán link Sheet</div>
+                    <div className="text-xs text-red-500 mt-1">⚠️ Chưa dán link Sheet</div>
                   )}
                   
                   <div className="mt-3">
-                    <button onClick={() => setDetailCustomerId(c.id)} className="text-[11px] text-indigo-500 hover:underline flex items-center gap-1">
+                    <button onClick={() => setDetailCustomerId(c.id)} className="text-xs font-semibold text-indigo-500 hover:underline flex items-center gap-1">
                       <CalendarDays size={12} /> Xem lộ trình & Ghi chú
                     </button>
                   </div>
@@ -287,41 +324,65 @@ export default function TodayPage() {
                         </div>
                      )}
 
-                     {!isCompletedSection && (
-                       <div className="mt-1">
-                         <div className="flex justify-between text-[10px] text-slate-500 mb-1">
-                           <span>{stats.startDate ? formatDateVN(stats.startDate) : ''}</span>
-                           <span>{timePercent}%</span>
-                         </div>
-                         <ProgressBar 
-                           percent={timePercent} 
-                           tone={remainingDays !== null && remainingDays < 0 ? 'red' : 'indigo'} 
-                         />
-                         {remainingDays !== null && (
-                           <div className="flex justify-end items-center gap-1 mt-1.5">
-                             <Clock size={12} className={remainingDays < 0 ? "text-red-500" : remainingDays <= 5 ? "text-amber-500" : "text-emerald-500"} />
-                             <span className={`text-[11px] font-bold ${remainingDays < 0 ? 'text-red-600' : remainingDays <= 5 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                               {remainingDays < 0 ? `Quá hạn ${-remainingDays} ngày` : remainingDays === 0 ? "Hạn cuối là hôm nay" : `Còn lại ${remainingDays} ngày`}
-                             </span>
-                           </div>
-                         )}
-                       </div>
-                     )}
-                   </div>
-                </td>
-
-                <td className="p-3 align-top">
-                  <div className="flex flex-col items-start gap-2">
-                    <div className="text-[10px] text-slate-500">
-                      {c.lastSheetSync ? (
-                         <div className="flex items-center gap-1">
-                           <CheckCircle2 size={10} className="text-emerald-500" />
-                           {new Date(c.lastSheetSync).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
-                         </div>
-                      ) : (
-                         <span>Chưa dữ liệu</span>
+                      {!isCompletedSection && (
+                        <div className="mt-2">
+                          <div className="flex justify-between text-xs font-medium text-slate-500 mb-1.5">
+                            <span>Bắt đầu: {stats.startDate ? formatDateVN(stats.startDate) : '---'}</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-200">{timePercent}% thời gian</span>
+                          </div>
+                          <ProgressBar
+                            percent={timePercent}
+                            tone={remainingDays !== null && remainingDays < 0 ? 'red' : 'indigo'}
+                          />
+                          {remainingDays !== null && (() => {
+                            const overdue = remainingDays < 0;
+                            const urgent = !overdue && remainingDays <= 5;
+                            const notice = !overdue && !urgent && remainingDays <= 10;
+                            const box = overdue ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : urgent ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/20' : notice ? 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10' : 'border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20';
+                            const num = overdue ? 'text-red-600' : urgent ? 'text-amber-600' : notice ? 'text-yellow-600' : 'text-emerald-600';
+                            const label = overdue ? 'QUÁ HẠN NGHIỆM THU' : remainingDays === 0 ? 'HẠN CUỐI LÀ HÔM NAY' : urgent ? 'SẮP ĐẾN HẠN - CẦN ĐẨY NHANH' : notice ? 'CẦN CHÚ Ý TIẾN ĐỘ' : 'ĐANG ĐÚNG TIẾN ĐỘ';
+                            const sopDone = Math.min(Object.values(c.sopChecklist || {}).filter(Boolean).length, 48);
+                            const sopPct = Math.round((sopDone / 48) * 100);
+                            const behind = sopPct + 15 < timePercent;
+                            return (
+                              <div className={`mt-3 rounded-xl border-2 p-3 ${box}`}>
+                                <div className="flex items-center gap-3">
+                                  <div className="min-w-[64px] text-center">
+                                    <div className={`text-4xl font-black leading-none ${num} ${(overdue || urgent) ? 'animate-pulse' : ''}`}>{Math.abs(remainingDays)}</div>
+                                    <div className={`mt-1 text-[11px] font-bold uppercase ${num}`}>{overdue ? 'ngày trễ' : 'ngày còn'}</div>
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className={`text-sm font-extrabold leading-tight ${num}`}>{label}</div>
+                                    <div className="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">Hạn: {handoverDate ? formatDateVN(handoverDate) : '---'}</div>
+                                  </div>
+                                </div>
+                                <div className="mt-2.5 border-t border-black/5 pt-2 dark:border-white/10">
+                                  <div className="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                    <span>SOP: {sopDone}/48 ({sopPct}%)</span>
+                                    {behind ? <span className="text-red-600">⚠ Chậm so với kế hoạch</span> : <span className="text-emerald-600">✓ Kịp tiến độ</span>}
+                                  </div>
+                                  <div className="mt-1"><ProgressBar percent={sopPct} tone={behind ? 'red' : 'green'} /></div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
                       )}
                     </div>
+                 </td>
+
+                 <td className="p-3 align-top">
+                   <div className="flex flex-col items-start gap-2">
+                     <div className="text-[10px] text-slate-500">
+                       {c.lastSheetSync ? (
+                          <div className="flex items-center gap-1">
+                            <CheckCircle2 size={10} className="text-emerald-500" />
+                            {new Date(c.lastSheetSync).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                          </div>
+                       ) : (
+                          <span>Chưa dữ liệu</span>
+                       )}
+                     </div>
                     <div className="flex flex-wrap items-center gap-1">
                       <button 
                         disabled={!c.sheetLink || isSyncing}
@@ -402,6 +463,62 @@ export default function TodayPage() {
             <div className="text-sm font-medium text-slate-500">Đã hoàn thành</div>
             <div className="text-2xl font-bold">{completedCount}</div>
           </div>
+        </div>
+      </div>
+
+      <div className="card p-4 space-y-3">
+        <div className="flex flex-col gap-3 lg:flex-row">
+          <div className="relative flex-1">
+            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Tìm theo tên khách hàng, ngành hàng..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input pl-10"
+            />
+          </div>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="input lg:w-60">
+            <option value="default">Sắp xếp: Mặc định</option>
+            <option value="deadline">Sắp xếp: Gần hạn nhất trước</option>
+            <option value="name">Sắp xếp: Tên A → Z</option>
+          </select>
+          {(searchTerm || filterStatus !== 'ALL' || urgency !== 'ALL' || sortBy !== 'default') && (
+            <button className="btn-secondary" onClick={() => { setSearchTerm(''); setFilterStatus('ALL'); setUrgency('ALL'); setSortBy('default'); }}>
+              <X size={14} /> Xóa bộ lọc
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-slate-500"><Filter size={13} /> Trạng thái:</span>
+          {[{ k: 'ALL', n: customers.length }, { k: 'DV-Gets', n: statusCounts['DV-Gets'] || 0 }, { k: 'DV – CB Kiến Thức', n: statusCounts['DV – CB Kiến Thức'] || 0 }, { k: 'DV – Test AI', n: statusCounts['DV – Test AI'] || 0 }, { k: 'DV – Actual Run', n: statusCounts['DV – Actual Run'] || 0 }, { k: 'DV – Done', n: statusCounts['DV – Done'] || 0 }].map(o => (
+            <button
+              key={o.k}
+              onClick={() => setFilterStatus(o.k)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${filterStatus === o.k ? 'border-orange-500 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/30' : 'border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:bg-orange-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}
+            >
+              {o.k === 'ALL' ? 'Tất cả' : o.k} <span className={`ml-1 rounded-full px-1.5 ${filterStatus === o.k ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700'}`}>{o.n}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-slate-500"><Clock size={13} /> Mức độ gấp:</span>
+          {[
+            { k: 'ALL', label: 'Tất cả', n: null as number | null, cls: '' },
+            { k: 'overdue', label: '🔥 Quá hạn', n: overdueCount, cls: 'red' },
+            { k: 'soon', label: '⏰ Sắp đến hạn (≤5 ngày)', n: soonCount, cls: 'amber' },
+            { k: 'meeting', label: '📅 Có lịch hẹn sắp tới', n: meetingCount, cls: 'orange' },
+          ].map(o => (
+            <button
+              key={o.k}
+              onClick={() => setUrgency(o.k)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${urgency === o.k ? 'border-orange-500 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/30' : 'border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:bg-orange-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}
+            >
+              {o.label}{o.n !== null && <span className={`ml-1 rounded-full px-1.5 ${urgency === o.k ? 'bg-white/25' : o.n > 0 && o.cls === 'red' ? 'bg-red-100 text-red-700' : 'bg-slate-100 dark:bg-slate-700'}`}>{o.n}</span>}
+            </button>
+          ))}
         </div>
       </div>
 
