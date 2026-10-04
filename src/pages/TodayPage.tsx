@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { parseSheetData, SheetStats } from '../domain/sheetParser';
-import { ExternalLink, RefreshCw, CheckCircle2, Plus, X, Users, Activity, CheckCircle, Clock, CalendarDays } from 'lucide-react';
+import { Search, Filter, ExternalLink, RefreshCw, CheckCircle2, Plus, X, Users, Activity, CheckCircle, Clock, CalendarDays } from 'lucide-react';
 import { Badge, ProgressBar } from '../components/ui';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import { SOPGuide } from '../components/SOPGuide';
@@ -43,6 +43,8 @@ export default function TodayPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [syncing, setSyncing] = useState<string | null>(null);
   const [detailCustomerId, setDetailCustomerId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("ALL");
 
   
   const getBadgeTone = (status: string): any => {
@@ -145,8 +147,16 @@ export default function TodayPage() {
      return Math.round(((now - start) / (end - start)) * 100);
   };
 
-  const total = customers.length;
-  const completedCount = customers.filter(c => getCustomerStatus(parseSheetData(c.sheetData)) === "DV – Done").length;
+  const filteredCustomers = customers.filter(c => {
+    const stats = parseSheetData(c.sheetData);
+    const status = getCustomerStatus(stats);
+    const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = filterStatus === 'ALL' || status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+  
+  const total = filteredCustomers.length;
+  const completedCount = filteredCustomers.filter(c => getCustomerStatus(parseSheetData(c.sheetData)) === "DV – Done").length;
   const inProgressCount = total - completedCount;
 
   const renderTable = (list: Customer[], emptyMessage: string, isCompletedSection = false) => (
@@ -346,8 +356,8 @@ export default function TodayPage() {
     </div>
   );
 
-  const activeCustomers = customers.filter(c => getCustomerStatus(parseSheetData(c.sheetData)) !== "DV – Done");
-  const completedList = customers.filter(c => getCustomerStatus(parseSheetData(c.sheetData)) === "DV – Done");
+  const activeCustomers = filteredCustomers.filter(c => getCustomerStatus(parseSheetData(c.sheetData)) !== "DV – Done");
+  const completedList = filteredCustomers.filter(c => getCustomerStatus(parseSheetData(c.sheetData)) === "DV – Done");
 
   return (
     <div className="space-y-6">
