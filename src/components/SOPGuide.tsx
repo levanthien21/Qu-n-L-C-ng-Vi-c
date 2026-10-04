@@ -32,9 +32,9 @@ export function SOPGuide({ customer }: { customer: Customer }) {
   const updateCustomer = useStore(s => s.updateCustomer);
   const checklist = customer.sopChecklist || {};
 
-  const totalItems = 38;
-  const completedItems = Object.values(checklist).filter(v => v).length;
-  const percent = Math.round((completedItems / totalItems) * 100) || 0;
+  const totalItems = 48;
+  const completedItems = Math.min(Object.values(checklist).filter(v => v).length, totalItems);
+  const percent = Math.min(100, Math.round((completedItems / totalItems) * 100) || 0);
 
   const CheckItem = ({ id, children }: { id: string, children: React.ReactNode }) => {
     const isChecked = checklist[id] || false;

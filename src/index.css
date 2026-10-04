@@ -4,10 +4,17 @@
 
 @layer base {
   html {
-    @apply bg-slate-50 text-slate-800;
+    @apply bg-orange-50/40 text-slate-800 scroll-smooth;
+    background-image:
+      radial-gradient(900px 500px at 100% -10%, rgba(255, 138, 61, 0.14), transparent 60%),
+      radial-gradient(700px 420px at -10% 110%, rgba(255, 106, 19, 0.10), transparent 60%);
+    background-attachment: fixed;
   }
   html.dark {
     @apply bg-slate-950 text-slate-100;
+    background-image:
+      radial-gradient(900px 500px at 100% -10%, rgba(255, 106, 19, 0.16), transparent 60%),
+      radial-gradient(700px 420px at -10% 110%, rgba(255, 138, 61, 0.10), transparent 60%);
   }
   body {
     @apply min-h-screen antialiased;
@@ -15,32 +22,39 @@
   a {
     @apply text-inherit;
   }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { @apply rounded-full bg-orange-300/60 hover:bg-orange-400; }
+  ::-webkit-scrollbar-track { background: transparent; }
 }
 
 @layer components {
   .card {
-    @apply rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900;
+    @apply rounded-2xl border border-orange-100 bg-white/90 shadow-sm backdrop-blur transition-all duration-300 dark:border-slate-800 dark:bg-slate-900/90;
+    animation: fadeUp .55s cubic-bezier(.22, 1, .36, 1) both;
+  }
+  .card:hover {
+    @apply shadow-lg shadow-orange-500/10;
   }
   .input {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-800/50;
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-800/50;
   }
   .label {
     @apply mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-indigo-600 text-white hover:bg-indigo-700;
+    @apply btn bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/30 hover:-translate-y-0.5 hover:from-orange-600 hover:to-red-500 hover:shadow-lg hover:shadow-orange-500/40;
   }
   .btn-secondary {
-    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700;
+    @apply btn border border-orange-200 bg-white text-slate-700 hover:border-orange-300 hover:bg-orange-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700;
   }
   .btn-danger {
     @apply btn bg-red-600 text-white hover:bg-red-700;
   }
   .btn-ghost {
-    @apply btn text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800;
+    @apply btn text-slate-600 hover:bg-orange-50 dark:text-slate-300 dark:hover:bg-slate-800;
   }
   .btn-sm {
     @apply px-2 py-1 text-xs;
@@ -48,4 +62,25 @@
   .section-title {
     @apply mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400;
   }
+  .gradient-text {
+    @apply bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 bg-clip-text text-transparent;
+  }
+  .hero-banner {
+    @apply relative overflow-hidden rounded-2xl border border-orange-100 shadow-lg shadow-orange-500/10;
+    animation: fadeUp .6s cubic-bezier(.22, 1, .36, 1) both;
+  }
+  .shimmer-bar {
+    background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2.2s linear infinite;
+  }
+}
+
+/* Hiệu ứng xuất hiện cho hàng bảng + modal */
+tbody tr { animation: fadeIn .45s ease-out both; }
+tbody tr:hover { background-color: rgba(255, 106, 19, 0.045); }
+.fixed.inset-0 > div { animation: popIn .35s cubic-bezier(.22, 1, .36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }

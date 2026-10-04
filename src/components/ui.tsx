@@ -43,10 +43,12 @@ export function CustomerStatusBadge({ status }: { status: CustomerStatusKey }) {
 }
 
 export function ProgressBar({ percent, tone = 'indigo' }: { percent: number; tone?: 'indigo' | 'green' | 'red' }) {
-  const color = tone === 'green' ? 'bg-emerald-500' : tone === 'red' ? 'bg-red-500' : 'bg-indigo-500';
+  const color = tone === 'green' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : tone === 'red' ? 'bg-gradient-to-r from-red-400 to-red-600' : 'bg-gradient-to-r from-orange-400 to-orange-600';
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-      <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} />
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-orange-100 dark:bg-slate-800">
+      <div className={`relative h-full overflow-hidden rounded-full transition-all duration-700 ease-out ${color}`} style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}>
+        <span className="shimmer-bar absolute inset-0" />
+      </div>
     </div>
   );
 }

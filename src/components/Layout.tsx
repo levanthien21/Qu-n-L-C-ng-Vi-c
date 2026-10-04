@@ -81,8 +81,8 @@ export default function Layout() {
         to={to}
         end={end}
         className={({ isActive }) =>
-          `group flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-            isActive ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50'
+          `group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 ${
+            isActive ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/30' : 'text-slate-600 hover:translate-x-1 hover:bg-orange-50 hover:text-orange-700 dark:text-slate-400 dark:hover:bg-slate-800/50'
           }`
         }
         onClick={() => {
@@ -98,18 +98,25 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 z-50">
-        <span className="font-bold text-lg text-indigo-600 dark:text-indigo-400">DVHL Manager</span>
+    <div className="flex h-screen text-slate-900 dark:text-slate-100">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur dark:bg-slate-900/90 border-b border-orange-100 dark:border-slate-800 flex items-center justify-between px-4 z-50">
+        <span className="flex items-center gap-2 font-extrabold text-lg">
+          <img src="/logo.png" alt="Logo" className="h-9 w-9 rounded-xl object-cover shadow-md shadow-orange-500/30" />
+          <span className="gradient-text">Thiện Bot Bán Hàng</span>
+        </span>
         <button id="sidebar-toggle" className="p-2 -mr-2" onClick={() => document.body.classList.toggle('sidebar-open')}>
           <ListChecks size={24} />
         </button>
       </div>
 
-      <aside className="sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transition-transform bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
-        <div className="h-14 lg:h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 hidden lg:flex">
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl text-indigo-600 dark:text-indigo-400">
-            <ListChecks size={24} /> DVHL Manager
+      <aside className="sidebar fixed lg:static inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transition-transform bg-white/90 backdrop-blur dark:bg-slate-900/90 border-r border-orange-100 dark:border-slate-800 flex flex-col">
+        <div className="h-20 hidden lg:flex items-center px-5 border-b border-orange-100 dark:border-slate-800">
+          <Link to="/" className="flex items-center gap-3 group">
+            <img src="/logo.png" alt="Logo" className="h-12 w-12 rounded-2xl object-cover shadow-lg shadow-orange-500/30 ring-2 ring-orange-200 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 animate-float" />
+            <div className="leading-tight">
+              <div className="gradient-text text-lg font-extrabold">Thiện Bot Bán Hàng</div>
+              <div className="text-[11px] font-medium text-slate-500">DVHL Support Manager</div>
+            </div>
           </Link>
         </div>
 
@@ -139,10 +146,11 @@ export default function Layout() {
 
       <main className="flex-1 overflow-y-auto pt-14 lg:pt-0">
         <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div className="text-sm font-medium text-slate-500">{weekdayVN(today)}</div>
-              <h1 className="text-2xl font-bold">{formatVN(today)}</h1>
+          <div className="hero-banner mb-6">
+            <img src="/banner.png" alt="Thiện Bot Bán Hàng" className="w-full h-32 sm:h-40 lg:h-48 object-cover object-left" />
+            <div className="absolute right-3 top-3 rounded-xl bg-white/85 px-3 py-1.5 text-right shadow-md backdrop-blur dark:bg-slate-900/80">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-orange-600">{weekdayVN(today)}</div>
+              <div className="text-sm font-extrabold text-slate-800 dark:text-slate-100">{formatVN(today)}</div>
             </div>
           </div>
           <Outlet />
