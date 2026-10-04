@@ -17,7 +17,7 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
           <div>
             <h2 className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{customer.name}</h2>
-            <div className="text-xs text-slate-500 mt-1">Chi tiáº¿t lá»™ trÃ¬nh triá»ƒn khai ({stats.completedTasks}/{stats.totalTasks} viá»‡c - {stats.percent}%)</div>
+            <div className="text-xs text-slate-500 mt-1">Chi tiết lộ trình triển khai ({stats.completedTasks}/{stats.totalTasks} việc - {stats.percent}%)</div>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
             <X size={20} />
@@ -27,11 +27,11 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
         <div className="p-4 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900">
           {stats.milestones.length > 0 && (
             <div className="mb-6 bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
-              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><CalendarDays size={16} className="text-indigo-500"/> Lá»‹ch triá»ƒn khai (Milestones)</h3>
+              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><CalendarDays size={16} className="text-indigo-500"/> Lịch triển khai (Milestones)</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {stats.milestones.map((m, i) => {
-                  const isDone = m.status.toLowerCase().includes('hoÃ n thÃ nh');
-                  const isDoing = m.status.toLowerCase().includes('Ä‘ang thá»±c hiá»‡n');
+                  const isDone = m.status.toLowerCase().includes('hoàn thành');
+                  const isDoing = m.status.toLowerCase().includes('đang thực hiện');
                   return (
                     <div key={i} className="flex items-center justify-between gap-2 text-xs bg-slate-50 dark:bg-slate-700/30 p-2 rounded border border-slate-100 dark:border-slate-700/50">
                        <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
                            <span className="text-slate-500 text-[10px] mt-0.5">{m.start || '?'} - {m.end || '?'}</span>
                          </div>
                        </div>
-                       <Badge tone={isDone ? 'green' : isDoing ? 'orange' : 'slate'}>{m.status || 'Trá»‘ng'}</Badge>
+                       <Badge tone={isDone ? 'green' : isDoing ? 'orange' : 'slate'}>{m.status || 'Trống'}</Badge>
                     </div>
                   )
                 })}
@@ -57,9 +57,9 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
               return (
                 <div key={idx} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                   <div className="px-4 py-3 bg-slate-100 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                    <h3 className="font-semibold text-sm">{phase || 'KhÃ´ng tÃªn'}</h3>
+                    <h3 className="font-semibold text-sm">{phase || 'Không tên'}</h3>
                     <Badge tone={isAllDone ? 'green' : 'blue'}>
-                      {doneTasks}/{phaseTasks.length} hoÃ n thÃ nh
+                      {doneTasks}/{phaseTasks.length} hoàn thành
                     </Badge>
                   </div>
                   <ul className="divide-y divide-slate-100 dark:divide-slate-700/50">
@@ -72,7 +72,7 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
                             <div className="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-600" />
                           )}
                         </div>
-                        <span className="`text-sm ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200 font-medium'}`">
+                        <span className={`text-sm ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200 font-medium'}`}>
                           {t.name}
                         </span>
                       </li>
@@ -84,7 +84,7 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
             
             {phases.length === 0 && (
                <div className="text-center p-8 text-slate-500">
-                  KhÃ´ng tÃ¬m tháº¥y cÃ´ng viá»‡c nÃ o trong sheet "Lá»™ trÃ¬nh triá»ƒn khai".
+                  Không tìm thấy công việc nào trong sheet "Lộ trình triển khai".
                </div>
             )}
           </div>
@@ -104,7 +104,7 @@ export default function TodayPage() {
   const forceSync = async (c: Customer) => {
     if (!settings.googleScriptUrl || !c.sheetLink) return;
     const match = c.sheetLink.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    if (!match) { alert('Link Google Sheet khÃ´ng Ä‘Ãºng Ä‘á»‹nh dáº¡ng!'); return; }
+    if (!match) { alert('Link Google Sheet không đúng định dạng!'); return; }
     
     setSyncing(c.id);
     try {
@@ -116,10 +116,10 @@ export default function TodayPage() {
            lastSheetSync: new Date().toISOString()
          });
       } else {
-         alert('Lá»—i tá»« Google Sheet: ' + (data.error || 'Unknown'));
+         alert('Lỗi từ Google Sheet: ' + (data.error || 'Unknown'));
       }
     } catch(e) {
-      alert('Lá»—i káº¿t ná»‘i Ä‘á»“ng bá»™ máº¡ng!');
+      alert('Lỗi kết nối đồng bộ mạng!');
     }
     setSyncing(null);
   };
@@ -155,10 +155,10 @@ export default function TodayPage() {
       <table className="w-full text-left text-sm">
         <thead className="bg-slate-50 text-slate-500 dark:bg-slate-800">
           <tr>
-            <th className="p-3 font-medium min-w-[180px]">KhÃ¡ch hÃ ng</th>
-            <th className="p-3 font-medium min-w-[160px]">Tiáº¿n Ä‘á»™</th>
-            <th className="p-3 font-medium min-w-[280px]">Lá»‹ch trÃ¬nh Nghiá»‡m thu</th>
-            <th className="p-3 font-medium min-w-[130px]">Äá»“ng bá»™</th>
+            <th className="p-3 font-medium min-w-[180px]">Khách hàng</th>
+            <th className="p-3 font-medium min-w-[160px]">Tiến độ</th>
+            <th className="p-3 font-medium min-w-[280px]">Lịch trình Nghiệm thu</th>
+            <th className="p-3 font-medium min-w-[130px]">Đồng bộ</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -176,29 +176,29 @@ export default function TodayPage() {
                   <button onClick={() => setDetailCustomer(c)} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-left">
                     {c.name}
                   </button>
-                  <div className="text-xs text-slate-500 mt-1">{c.industry || 'ChÆ°a phÃ¢n loáº¡i'}</div>
+                  <div className="text-xs text-slate-500 mt-1">{c.industry || 'Chưa phân loại'}</div>
                   {c.sheetLink ? (
                     <a href={c.sheetLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-500 hover:underline mt-1">
-                      Má»Ÿ File Sheet <ExternalLink size={10} />
+                      Mở File Sheet <ExternalLink size={10} />
                     </a>
                   ) : (
-                    <div className="text-[11px] text-red-500 mt-1">âš ï¸ ChÆ°a dÃ¡n link Sheet</div>
+                    <div className="text-[11px] text-red-500 mt-1">⚠️ Chưa dán link Sheet</div>
                   )}
                 </td>
                 
                 <td className="p-3 align-top cursor-pointer" onClick={() => setDetailCustomer(c)}>
                   <div className="mb-2">
                     {stats.currentPhase ? (
-                      <Badge tone={stats.currentPhase.includes('hoÃ n thÃ nh') ? 'green' : 'blue'}>
+                      <Badge tone={stats.currentPhase.includes('hoàn thành') ? 'green' : 'blue'}>
                         {stats.currentPhase}
                       </Badge>
                     ) : (
-                      <span className="text-xs text-slate-400">{c.sheetData ? 'ChÆ°a báº¯t Ä‘áº§u' : 'Äang quÃ©t...'}</span>
+                      <span className="text-xs text-slate-400">{c.sheetData ? 'Chưa bắt đầu' : 'Đang quét...'}</span>
                     )}
                   </div>
                   <div className="flex items-center justify-between mb-1 w-full max-w-[160px]">
                     <span className="text-xs font-semibold">{stats.percent}%</span>
-                    <span className="text-[10px] text-slate-500">{stats.completedTasks} / {stats.totalTasks} viá»‡c</span>
+                    <span className="text-[10px] text-slate-500">{stats.completedTasks} / {stats.totalTasks} việc</span>
                   </div>
                   <div className="w-full max-w-[160px]">
                     <ProgressBar percent={stats.percent} tone={stats.percent === 100 ? 'green' : isDanger ? 'red' : 'indigo'} />
@@ -208,16 +208,16 @@ export default function TodayPage() {
                 <td className="p-3 align-top">
                    <div className="flex flex-col gap-2 w-full max-w-[260px] bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded border border-slate-100 dark:border-slate-700/50">
                      <div className="flex justify-between items-center text-xs">
-                       <span className="text-slate-500 font-medium">NgÃ y triá»ƒn khai (Kick-off):</span>
+                       <span className="text-slate-500 font-medium">Ngày triển khai (Kick-off):</span>
                        <span className="font-semibold text-slate-700 dark:text-slate-300">{stats.startDate ? formatDateVN(stats.startDate) : '---'}</span>
                      </div>
                      <div className="flex justify-between items-center text-xs">
-                       <span className="text-slate-500 font-medium">GÃ³i dá»‹ch vá»¥:</span>
-                       <Badge tone="slate">{stats.durationDays} ngÃ y</Badge>
+                       <span className="text-slate-500 font-medium">Gói dịch vụ:</span>
+                       <Badge tone="slate">{stats.durationDays} ngày</Badge>
                      </div>
                      <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
                      <div className="flex justify-between items-center text-xs">
-                       <span className="text-indigo-600 dark:text-indigo-400 font-bold">NgÃ y nghiá»‡m thu:</span>
+                       <span className="text-indigo-600 dark:text-indigo-400 font-bold">Ngày nghiệm thu:</span>
                        <span className="font-bold text-indigo-700 dark:text-indigo-300">
                          {handoverDate ? formatDateVN(handoverDate) : '---'}
                        </span>
@@ -225,8 +225,8 @@ export default function TodayPage() {
                      {remainingDays !== null && stats.percent < 100 && (
                        <div className="flex justify-end items-center gap-1 mt-0.5">
                          <Clock size={12} className={remainingDays < 0 ? "text-red-500" : remainingDays <= 5 ? "text-amber-500" : "text-emerald-500"} />
-                         <span className="`text-xs font-bold ${remainingDays < 0 ? 'text-red-600' : remainingDays <= 5 ? 'text-amber-600' : 'text-emerald-600'}`">
-                           {remainingDays < 0 ? `QuÃ¡ háº¡n ${-remainingDays} ngÃ y` : remainingDays === 0 ? "Háº¡n cuá»‘i lÃ  hÃ´m nay" : `CÃ²n láº¡i ${remainingDays} ngÃ y`}
+                         <span className={`text-xs font-bold ${remainingDays < 0 ? 'text-red-600' : remainingDays <= 5 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                           {remainingDays < 0 ? `Quá hạn ${-remainingDays} ngày` : remainingDays === 0 ? "Hạn cuối là hôm nay" : `Còn lại ${remainingDays} ngày`}
                          </span>
                        </div>
                      )}
@@ -242,7 +242,7 @@ export default function TodayPage() {
                            {new Date(c.lastSheetSync).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
                          </div>
                       ) : (
-                         <span>ChÆ°a dá»¯ liá»‡u</span>
+                         <span>Chưa dữ liệu</span>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-1">
@@ -252,13 +252,13 @@ export default function TodayPage() {
                         className="flex items-center justify-center gap-1 text-[11px] w-20 py-1.5 rounded font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-600 disabled:opacity-50"
                       >
                         <RefreshCw size={10} className={isSyncing ? "animate-spin" : ""} /> 
-                        {isSyncing ? 'Äang láº¥y...' : 'Äá»“ng bá»™'}
+                        {isSyncing ? 'Đang lấy...' : 'Đồng bộ'}
                       </button>
                       <button 
-                        onClick={() => window.confirm('Báº¡n cÃ³ cháº¯c muá»‘n xÃ³a khÃ¡ch hÃ ng nÃ y?') && useStore.getState().deleteCustomer(c.id)}
+                        onClick={() => window.confirm('Bạn có chắc muốn xóa khách hàng này?') && useStore.getState().deleteCustomer(c.id)}
                         className="flex items-center justify-center gap-1 text-[11px] w-12 py-1.5 rounded font-medium bg-red-50 hover:bg-red-100 text-red-600"
                       >
-                        XÃ³a
+                        Xóa
                       </button>
                     </div>
                   </div>
@@ -285,15 +285,15 @@ export default function TodayPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Master Dashboard (Thá»‘ng kÃª tá»« Google Sheet)</h1>
+        <h1 className="text-xl font-bold">Master Dashboard (Thống kê từ Google Sheet)</h1>
         <div className="flex items-center gap-2">
           {!settings.googleScriptUrl && (
              <Link to="/cai-dat" className="text-red-500 underline text-sm font-semibold">
-               âš ï¸ ChÆ°a cÃ i Ä‘áº·t Cáº§u ná»‘i
+               ⚠️ Chưa cài đặt Cầu nối
              </Link>
           )}
           <button className="btn-primary" onClick={() => setAddOpen(true)}>
-            <Plus size={16} /> ThÃªm khÃ¡ch hÃ ng
+            <Plus size={16} /> Thêm khách hàng
           </button>
         </div>
       </div>
@@ -304,7 +304,7 @@ export default function TodayPage() {
             <Users size={24} />
           </div>
           <div>
-            <div className="text-sm font-medium text-slate-500">Tá»•ng khÃ¡ch hÃ ng</div>
+            <div className="text-sm font-medium text-slate-500">Tổng khách hàng</div>
             <div className="text-2xl font-bold">{total}</div>
           </div>
         </div>
@@ -313,7 +313,7 @@ export default function TodayPage() {
             <Activity size={24} />
           </div>
           <div>
-            <div className="text-sm font-medium text-slate-500">Äang triá»ƒn khai</div>
+            <div className="text-sm font-medium text-slate-500">Đang triển khai</div>
             <div className="text-2xl font-bold">{inProgressCount}</div>
           </div>
         </div>
@@ -322,7 +322,7 @@ export default function TodayPage() {
             <CheckCircle size={24} />
           </div>
           <div>
-            <div className="text-sm font-medium text-slate-500">ÄÃ£ hoÃ n thÃ nh</div>
+            <div className="text-sm font-medium text-slate-500">Đã hoàn thành</div>
             <div className="text-2xl font-bold">{completedCount}</div>
           </div>
         </div>
@@ -331,18 +331,18 @@ export default function TodayPage() {
       <div className="mt-8">
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
           <Activity className="text-amber-500" />
-          KhÃ¡ch hÃ ng Ä‘ang triá»ƒn khai
+          Khách hàng đang triển khai
         </h2>
-        {renderTable(activeCustomers, "KhÃ´ng cÃ³ khÃ¡ch hÃ ng nÃ o Ä‘ang triá»ƒn khai.")}
+        {renderTable(activeCustomers, "Không có khách hàng nào đang triển khai.")}
       </div>
 
       {completedList.length > 0 && (
         <div className="mt-8 opacity-75 hover:opacity-100 transition-opacity">
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-emerald-600">
             <CheckCircle className="text-emerald-500" />
-            KhÃ¡ch hÃ ng Ä‘Ã£ hoÃ n thÃ nh (Nghiá»‡m thu)
+            Khách hàng đã hoàn thành (Nghiệm thu)
           </h2>
-          {renderTable(completedList, "ChÆ°a cÃ³ khÃ¡ch hÃ ng nÃ o hoÃ n thÃ nh.")}
+          {renderTable(completedList, "Chưa có khách hàng nào hoàn thành.")}
         </div>
       )}
       
