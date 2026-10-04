@@ -173,6 +173,7 @@ export interface Customer {
   aiErrorBaseline: number;
   rescheduleLogs: RescheduleLog[];
   createdAt: string;
+  completedAt?: string;
   isDemo?: boolean;
 }
 

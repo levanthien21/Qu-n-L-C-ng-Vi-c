@@ -101,6 +101,29 @@ export default function TodayPage() {
   const [syncing, setSyncing] = useState<string | null>(null);
   const [detailCustomer, setDetailCustomer] = useState<Customer | null>(null);
 
+  const getCustomerStatus = (stats: SheetStats) => {
+     const getStatus = (name: string) => {
+       const m = stats.milestones.find(x => x.name.toLowerCase().includes(name.toLowerCase()));
+       return m ? m.status.toLowerCase() : '';
+     };
+
+     const isDone = (s: string) => s.includes('hoàn thành') || s.includes('xong');
+     const isDoing = (s: string) => s.includes('đang thực hiện') || isDone(s);
+
+     const nghiemThuStatus = getStatus('nghiệm thu');
+     const kickOffStatus = getStatus('kick-off') || getStatus('kick off');
+     const setupStatus = getStatus('setup & test') || getStatus('setup') || getStatus('set ai');
+     const vanHanhStatus = getStatus('vận hành') || getStatus('actual run');
+     const buoi3Status = getStatus('buổi 3');
+
+     if (isDone(nghiemThuStatus) || isDone(buoi3Status)) return "DV – Done";
+     if (isDoing(vanHanhStatus)) return "DV – Actual Run";
+     if (isDoing(setupStatus)) return "DV – Test AI";
+     if (isDone(kickOffStatus)) return "DV – CB Kiến Thức";
+     
+     return "DV-Gets";
+  };
+
   const forceSync = async (c: Customer) => {
     if (!settings.googleScriptUrl || !c.sheetLink) return;
     const match = c.sheetLink.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -111,10 +134,21 @@ export default function TodayPage() {
       const res = await fetch(`${settings.googleScriptUrl}?id=${match[1]}`);
       const data = await res.json();
       if (data.success && data.data) {
-         useStore.getState().updateCustomer(c.id, { 
+         const newStats = parseSheetData(data.data);
+         const isDone = getCustomerStatus(newStats) === "DV – Done";
+         
+         const updates: Partial<Customer> = { 
            sheetData: data.data,
            lastSheetSync: new Date().toISOString()
-         });
+         };
+         
+         if (isDone && !c.completedAt) {
+           updates.completedAt = new Date().toISOString();
+         } else if (!isDone) {
+           updates.completedAt = undefined;
+         }
+         
+         useStore.getState().updateCustomer(c.id, updates);
       } else {
          alert('Lỗi từ Google Sheet: ' + (data.error || 'Unknown'));
       }
@@ -131,13 +165,13 @@ export default function TodayPage() {
     return d.toISOString().substring(0, 10);
   };
 
-  const getRemainingDays = (dateStr: string | null) => {
+  const getRemainingDays = (dateStr: string | null, fromDateStr?: string | null) => {
     if (!dateStr || !dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return null;
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    const from = fromDateStr ? new Date(fromDateStr) : new Date();
+    from.setHours(0,0,0,0);
     const target = new Date(dateStr);
     target.setHours(0,0,0,0);
-    return Math.round((target.getTime() - today.getTime()) / 86400000);
+    return Math.round((target.getTime() - from.getTime()) / 86400000);
   };
   
   const formatDateVN = (dateStr: string | null) => {
@@ -154,28 +188,6 @@ export default function TodayPage() {
      if (now <= start) return 0;
      if (now >= end) return 100;
      return Math.round(((now - start) / (end - start)) * 100);
-  };
-
-  const getCustomerStatus = (stats: SheetStats) => {
-     const getStatus = (name: string) => {
-       const m = stats.milestones.find(x => x.name.toLowerCase().includes(name.toLowerCase()));
-       return m ? m.status.toLowerCase() : '';
-     };
-
-     const isDone = (s: string) => s.includes('hoàn thành') || s.includes('xong');
-     const isDoing = (s: string) => s.includes('đang thực hiện') || isDone(s);
-
-     const kickOffStatus = getStatus('kick-off') || getStatus('kick off');
-     const setupStatus = getStatus('setup & test') || getStatus('setup') || getStatus('set ai');
-     const vanHanhStatus = getStatus('vận hành') || getStatus('actual run');
-     const buoi3Status = getStatus('buổi 3');
-
-     if (isDone(buoi3Status)) return "DV – Done";
-     if (isDoing(vanHanhStatus)) return "DV – Actual Run";
-     if (isDoing(setupStatus)) return "DV – Test AI";
-     if (isDone(kickOffStatus)) return "DV – CB Kiến Thức";
-     
-     return "DV-Gets";
   };
 
   const total = customers.length;
@@ -199,9 +211,13 @@ export default function TodayPage() {
             const isSyncing = syncing === c.id;
             
             const handoverDate = addDays(stats.startDate, stats.durationDays);
-            const remainingDays = getRemainingDays(handoverDate);
-            const timePercent = getTimeProgress(stats.startDate, handoverDate);
             const currentStatus = getCustomerStatus(stats);
+            
+            const isDone = currentStatus === "DV – Done";
+            const targetComputeDate = isDone && c.completedAt ? c.completedAt : null;
+            const remainingDays = getRemainingDays(handoverDate, targetComputeDate);
+            
+            const timePercent = getTimeProgress(stats.startDate, handoverDate);
             
             const mKickoff = stats.milestones.find(m => m.name.toLowerCase().includes('kick-off') || m.name.toLowerCase().includes('kick off'));
             const mBuoi2 = stats.milestones.find(m => m.name.toLowerCase().includes('buổi 2'));
@@ -209,15 +225,15 @@ export default function TodayPage() {
 
             const MilestoneRow = ({ name, m }: { name: string, m?: {start: string, end: string, status: string} }) => {
                if (!m) return null;
-               const isDone = m.status.toLowerCase().includes('hoàn thành');
-               const isDoing = m.status.toLowerCase().includes('đang thực hiện');
+               const mIsDone = m.status.toLowerCase().includes('hoàn thành');
+               const mIsDoing = m.status.toLowerCase().includes('đang thực hiện');
                return (
                  <div className="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-800/50 px-2 py-1.5 rounded border border-slate-100 dark:border-slate-700/50">
                     <div className="flex items-center gap-2">
                       <span className="text-slate-600 dark:text-slate-300 font-medium w-16">{name}</span>
                       <span className="font-semibold text-slate-800 dark:text-slate-100">{formatDateVN(m.start || m.end)}</span>
                     </div>
-                    <Badge tone={isDone ? 'green' : isDoing ? 'orange' : 'slate'}>{m.status || 'Trống'}</Badge>
+                    <Badge tone={mIsDone ? 'green' : mIsDoing ? 'orange' : 'slate'}>{m.status || 'Trống'}</Badge>
                  </div>
                );
             };
@@ -256,7 +272,7 @@ export default function TodayPage() {
                    <div className={`flex flex-col gap-2 w-full max-w-[240px] p-3 rounded border ${isCompletedSection ? 'bg-emerald-50/50 border-emerald-100' : 'bg-indigo-50/50 border-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800/50'}`}>
                      <div className="flex justify-between items-center text-xs">
                        <span className="text-slate-600 font-medium">Trạng thái:</span>
-                       <Badge tone={currentStatus === 'DV – Done' ? 'green' : 'blue'}>{currentStatus}</Badge>
+                       <Badge tone={isDone ? 'green' : 'blue'}>{currentStatus}</Badge>
                      </div>
                      <div className="flex justify-between items-center text-xs mt-0.5">
                        <span className="text-slate-600 font-medium">Gói dịch vụ:</span>
@@ -270,6 +286,17 @@ export default function TodayPage() {
                          {handoverDate ? formatDateVN(handoverDate) : '---'}
                        </span>
                      </div>
+
+                     {isCompletedSection && remainingDays !== null && (
+                        <div className="mt-1 pt-1 border-t border-emerald-200/50">
+                           <div className="flex items-center gap-1.5 text-xs">
+                              <CheckCircle2 size={14} className="text-emerald-600" />
+                              <span className="font-semibold text-emerald-700">
+                                 {remainingDays > 0 ? `Hoàn thành sớm ${remainingDays} ngày!` : remainingDays < 0 ? `Hoàn thành trễ ${-remainingDays} ngày` : `Hoàn thành đúng hạn`}
+                              </span>
+                           </div>
+                        </div>
+                     )}
 
                      {!isCompletedSection && (
                        <div className="mt-1">
