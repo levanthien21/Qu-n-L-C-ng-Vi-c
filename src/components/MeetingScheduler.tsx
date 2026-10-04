@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { CalendarDays, CalendarPlus, Check, Clock, Trash2, Undo2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import type { Customer } from '../domain/types';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { vi } from 'date-fns/locale/vi';
+registerLocale('vi', vi);
 
 const TYPES = [
   { key: 'kickoff', label: 'Kick-off', cls: 'bg-red-100 text-red-700 border-red-200', dot: 'bg-red-500' },
@@ -32,7 +35,7 @@ function countdown(dateStr: string) {
 
 export function MeetingScheduler({ customer }: { customer: Customer }) {
   const [type, setType] = useState('kickoff');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState<Date | null>(null);
   const [note, setNote] = useState('');
   const meetings = customer.meetingNotes || [];
 
@@ -43,17 +46,18 @@ export function MeetingScheduler({ customer }: { customer: Customer }) {
     const d = new Date();
     d.setDate(d.getDate() + daysAhead);
     d.setHours(hour, 0, 0, 0);
-    setDate(toLocalInput(d));
+    setDate(d);
   };
 
   const add = (e: React.FormEvent) => {
     e.preventDefault();
     if (!date) return;
     const label = typeOf(type).label;
-    const m = { id: Date.now().toString(), date, note: note.trim() || label, type };
+    const isoDate = toLocalInput(date); // or date.toISOString() - fallback to LocalInput equivalent so countdowns work the same
+    const m = { id: Date.now().toString(), date: isoDate, note: note.trim() || label, type };
     save([...meetings, m].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
     setNote('');
-    setDate('');
+    setDate(null);
   };
 
   const sorted = [...meetings].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -136,7 +140,19 @@ export function MeetingScheduler({ customer }: { customer: Customer }) {
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row">
-            <input type="datetime-local" required value={date} onChange={(e) => setDate(e.target.value)} className="input text-sm sm:w-56" />
+            <DatePicker
+              selected={date}
+              onChange={(d: Date | null) => setDate(d)}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              timeCaption="Giờ"
+              dateFormat="dd/MM/yyyy HH:mm"
+              locale="vi"
+              placeholderText="Chọn ngày giờ..."
+              className="input text-sm sm:w-[220px]"
+              required
+            />
             <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nội dung hẹn (VD: Hướng dẫn Retion, chốt link test...)" className="input flex-1 text-sm" />
             <button type="submit" className="btn-primary whitespace-nowrap text-sm">
               <CalendarPlus size={16} /> Thêm lịch
