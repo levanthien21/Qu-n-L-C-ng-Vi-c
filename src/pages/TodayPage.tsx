@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { parseSheetData } from '../domain/sheetParser';
-import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus, X } from 'lucide-react';
+import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus, X, Users, Activity, CheckCircle } from 'lucide-react';
 import { ProgressBar, Badge } from '../components/ui';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import type { Customer } from '../domain/types';
@@ -74,6 +74,7 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
 export default function TodayPage() {
   const customers = useStore((s) => s.customers);
   const settings = useStore((s) => s.settings);
+  const updateCustomer = useStore((s) => s.updateCustomer);
   const [addOpen, setAddOpen] = useState(false);
   const [syncing, setSyncing] = useState<string | null>(null);
   const [detailCustomer, setDetailCustomer] = useState<Customer | null>(null);
@@ -101,8 +102,12 @@ export default function TodayPage() {
     setSyncing(null);
   };
 
+  const total = customers.length;
+  const completed = customers.filter(c => parseSheetData(c.sheetData).percent === 100).length;
+  const inProgress = total - completed;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">Master Dashboard (Thống kê từ Google Sheet)</h1>
         <div className="flex items-center gap-2">
@@ -117,15 +122,47 @@ export default function TodayPage() {
         </div>
       </div>
 
+      {/* Thống kê */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="card p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+            <Users size={24} />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-slate-500">Tổng khách hàng</div>
+            <div className="text-2xl font-bold">{total}</div>
+          </div>
+        </div>
+        <div className="card p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
+            <Activity size={24} />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-slate-500">Đang triển khai</div>
+            <div className="text-2xl font-bold">{inProgress}</div>
+          </div>
+        </div>
+        <div className="card p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <CheckCircle size={24} />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-slate-500">Đã hoàn thành</div>
+            <div className="text-2xl font-bold">{completed}</div>
+          </div>
+        </div>
+      </div>
+
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-500 dark:bg-slate-800">
             <tr>
-              <th className="p-3 font-medium">Khách hàng / Doanh nghiệp</th>
-              <th className="p-3 font-medium">Giai đoạn hiện tại</th>
-              <th className="p-3 font-medium w-48">Tiến độ (Lộ trình triển khai)</th>
-              <th className="p-3 font-medium min-w-[200px]">Việc trễ hạn (Timeline 30 ngày)</th>
-              <th className="p-3 font-medium">Đồng bộ gần nhất</th>
+              <th className="p-3 font-medium min-w-[200px]">Khách hàng / Doanh nghiệp</th>
+              <th className="p-3 font-medium">Lộ trình (Tiến độ)</th>
+              <th className="p-3 font-medium min-w-[180px]">Việc trễ hạn (30 ngày)</th>
+              <th className="p-3 font-medium">Deadline</th>
+              <th className="p-3 font-medium">Ngày nghiệm thu</th>
+              <th className="p-3 font-medium min-w-[130px]">Đồng bộ</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -141,30 +178,32 @@ export default function TodayPage() {
                       {c.name}
                     </button>
                     <div className="text-xs text-slate-500 mt-1">{c.industry || 'Chưa phân loại'}</div>
-                    {c.sheetLink && (
+                    {c.sheetLink ? (
                       <a href={c.sheetLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-500 hover:underline mt-1">
-                        Mở File Google Sheet <ExternalLink size={10} />
+                        Mở File Sheet <ExternalLink size={10} />
                       </a>
-                    )}
-                    {!c.sheetLink && <div className="text-[11px] text-red-500 mt-1">⚠️ Chưa dán link Sheet</div>}
-                  </td>
-                  
-                  <td className="p-3 align-top">
-                    {stats.currentPhase ? (
-                      <Badge tone={stats.currentPhase.includes('hoàn thành') ? 'green' : 'blue'}>
-                        {stats.currentPhase}
-                      </Badge>
                     ) : (
-                      <span className="text-xs text-slate-400">{c.sheetData ? 'Chưa bắt đầu' : 'Đang quét...'}</span>
+                      <div className="text-[11px] text-red-500 mt-1">⚠️ Chưa dán link Sheet</div>
                     )}
                   </td>
                   
                   <td className="p-3 align-top cursor-pointer" onClick={() => setDetailCustomer(c)}>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="mb-2">
+                      {stats.currentPhase ? (
+                        <Badge tone={stats.currentPhase.includes('hoàn thành') ? 'green' : 'blue'}>
+                          {stats.currentPhase}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-slate-400">{c.sheetData ? 'Chưa bắt đầu' : 'Đang quét...'}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between mb-1 w-32">
                       <span className="text-xs font-semibold">{stats.percent}%</span>
                       <span className="text-[10px] text-slate-500">{stats.completedTasks} / {stats.totalTasks} việc</span>
                     </div>
-                    <ProgressBar percent={stats.percent} tone={isDanger ? 'red' : 'indigo'} />
+                    <div className="w-32">
+                      <ProgressBar percent={stats.percent} tone={isDanger ? 'red' : 'indigo'} />
+                    </div>
                   </td>
 
                   <td className="p-3 align-top">
@@ -180,7 +219,7 @@ export default function TodayPage() {
                     ) : (
                       stats.totalTasks > 0 ? (
                          <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                           <CheckCircle2 size={12} /> Không có việc trễ
+                           <CheckCircle2 size={12} /> Không trễ
                          </span>
                       ) : (
                          <span className="text-xs text-slate-400">—</span>
@@ -189,29 +228,47 @@ export default function TodayPage() {
                   </td>
 
                   <td className="p-3 align-top">
+                    <input 
+                      type="date" 
+                      className="text-xs border border-slate-200 dark:border-slate-700 rounded px-2 py-1 bg-transparent w-[110px]"
+                      value={c.endDate || ''}
+                      onChange={(e) => updateCustomer(c.id, { endDate: e.target.value })}
+                    />
+                  </td>
+
+                  <td className="p-3 align-top">
+                    <input 
+                      type="date" 
+                      className="text-xs border border-slate-200 dark:border-slate-700 rounded px-2 py-1 bg-transparent w-[110px]"
+                      value={c.handoverDate || ''}
+                      onChange={(e) => updateCustomer(c.id, { handoverDate: e.target.value })}
+                    />
+                  </td>
+
+                  <td className="p-3 align-top">
                     <div className="flex flex-col items-start gap-2">
-                      <div className="text-xs text-slate-500">
+                      <div className="text-[10px] text-slate-500">
                         {c.lastSheetSync ? (
                            <div className="flex items-center gap-1">
-                             <CheckCircle2 size={12} className="text-emerald-500" />
+                             <CheckCircle2 size={10} className="text-emerald-500" />
                              {new Date(c.lastSheetSync).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
                            </div>
                         ) : (
-                           <span>Chưa có dữ liệu</span>
+                           <span>Chưa dữ liệu</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
                         <button 
                           disabled={!c.sheetLink || isSyncing}
                           onClick={() => forceSync(c)}
-                          className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50"
+                          className="flex items-center justify-center gap-1 text-[11px] w-20 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50"
                         >
                           <RefreshCw size={10} className={isSyncing ? "animate-spin" : ""} /> 
                           {isSyncing ? 'Đang lấy...' : 'Đồng bộ'}
                         </button>
                         <button 
                           onClick={() => window.confirm('Bạn có chắc muốn xóa khách hàng này?') && useStore.getState().deleteCustomer(c.id)}
-                          className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-600"
+                          className="flex items-center justify-center gap-1 text-[11px] w-12 py-1 rounded bg-red-50 hover:bg-red-100 text-red-600"
                         >
                           Xóa
                         </button>
@@ -224,7 +281,7 @@ export default function TodayPage() {
             
             {customers.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-500">
+                <td colSpan={6} className="p-8 text-center text-slate-500">
                    Chưa có khách hàng nào. <button onClick={() => setAddOpen(true)} className="text-indigo-600 underline">Thêm khách hàng ngay</button>
                 </td>
               </tr>
