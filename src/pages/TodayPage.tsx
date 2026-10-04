@@ -105,7 +105,7 @@ export default function TodayPage() {
   const getBadgeTone = (status: string): any => {
      switch (status) {
         case 'DV-Gets': return 'red';
-        case 'DV – CB Kiến Thức': return 'dark-green';
+        case 'DV – CB Kiến Thức': return 'purple';
         case 'DV – Test AI': return 'dark-yellow';
         case 'DV – Actual Run': return 'dark-blue';
         case 'DV – Done': return 'green';
