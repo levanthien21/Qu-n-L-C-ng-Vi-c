@@ -5,11 +5,36 @@ import { parseSheetData } from '../domain/sheetParser';
 import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus } from 'lucide-react';
 import { ProgressBar, Badge } from '../components/ui';
 import { CustomerFormModal } from '../components/CustomerFormModal';
+import type { Customer } from '../domain/types';
 
 export default function TodayPage() {
   const customers = useStore((s) => s.customers);
   const settings = useStore((s) => s.settings);
   const [addOpen, setAddOpen] = useState(false);
+  const [syncing, setSyncing] = useState<string | null>(null);
+
+  const forceSync = async (c: Customer) => {
+    if (!settings.googleScriptUrl || !c.sheetLink) return;
+    const match = c.sheetLink.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    if (!match) { alert('Link Google Sheet không đúng định dạng!'); return; }
+    
+    setSyncing(c.id);
+    try {
+      const res = await fetch(`${settings.googleScriptUrl}?id=${match[1]}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+         useStore.getState().updateCustomer(c.id, { 
+           sheetData: data.data,
+           lastSheetSync: new Date().toISOString()
+         });
+      } else {
+         alert('Lỗi từ Google Sheet: ' + (data.error || 'Unknown'));
+      }
+    } catch(e) {
+      alert('Lỗi kết nối đồng bộ mạng!');
+    }
+    setSyncing(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -42,13 +67,14 @@ export default function TodayPage() {
             {customers.map(c => {
               const stats = parseSheetData(c.sheetData);
               const isDanger = stats.overdueTasks.length > 0;
+              const isSyncing = syncing === c.id;
               
               return (
                 <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                   <td className="p-3 align-top">
-                    <Link to={`/khach-hang/${c.id}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                       {c.name}
-                    </Link>
+                    </span>
                     <div className="text-xs text-slate-500 mt-1">{c.industry || 'Chưa phân loại'}</div>
                     {c.sheetLink && (
                       <a href={c.sheetLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] text-blue-500 hover:underline mt-1">
@@ -64,7 +90,7 @@ export default function TodayPage() {
                         {stats.currentPhase}
                       </Badge>
                     ) : (
-                      <span className="text-xs text-slate-400">Đang quét...</span>
+                      <span className="text-xs text-slate-400">{c.sheetData ? 'Chưa bắt đầu' : 'Đang quét...'}</span>
                     )}
                   </td>
                   
@@ -97,15 +123,27 @@ export default function TodayPage() {
                     )}
                   </td>
 
-                  <td className="p-3 align-top text-xs text-slate-500">
-                    {c.lastSheetSync ? (
-                       <div className="flex items-center gap-1">
-                         <RefreshCw size={12} className="text-emerald-500" />
-                         {new Date(c.lastSheetSync).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
-                       </div>
-                    ) : (
-                       <span>Chưa đồng bộ</span>
-                    )}
+                  <td className="p-3 align-top">
+                    <div className="flex flex-col items-start gap-2">
+                      <div className="text-xs text-slate-500">
+                        {c.lastSheetSync ? (
+                           <div className="flex items-center gap-1">
+                             <CheckCircle2 size={12} className="text-emerald-500" />
+                             {new Date(c.lastSheetSync).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                           </div>
+                        ) : (
+                           <span>Chưa có dữ liệu</span>
+                        )}
+                      </div>
+                      <button 
+                        disabled={!c.sheetLink || isSyncing}
+                        onClick={() => forceSync(c)}
+                        className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50"
+                      >
+                        <RefreshCw size={10} className={isSyncing ? "animate-spin" : ""} /> 
+                        {isSyncing ? 'Đang lấy dữ liệu...' : 'Đồng bộ lại'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
