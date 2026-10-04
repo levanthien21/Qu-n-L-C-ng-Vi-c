@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
+    "@supabase/supabase-js": "^2.117.2",
     "date-fns": "^4.4.0",
     "lucide-react": "^0.446.0",
     "papaparse": "^5.4.1",

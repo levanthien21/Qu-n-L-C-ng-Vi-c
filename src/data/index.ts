@@ -1,5 +1,5 @@
-import { LocalStorageRepository } from './localStorageRepository';
-import type { Repository } from './repository';
+// import { LocalStorageRepository } from './localStorageRepository';
+// export const repository = new LocalStorageRepository();
 
-/** Đổi dòng này sang SupabaseRepository ở giai đoạn 2. */
-export const repository: Repository = new LocalStorageRepository();
+import { SupabaseRepository } from './supabaseRepository';
+export const repository = new SupabaseRepository();
