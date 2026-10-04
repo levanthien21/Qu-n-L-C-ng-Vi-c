@@ -243,7 +243,7 @@ export default function TodayPage() {
             return (
               <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                 <td className="p-3 align-top">
-                  <button onClick={() => setDetailCustomerId(c.id)} className="text-lg font-extrabold leading-snug text-indigo-600 dark:text-indigo-400 hover:underline text-left">
+                  <button onClick={() => setDetailCustomerId(c.id)} className="text-base font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline text-left transition-colors">
                     {c.name}
                   </button>
                   <div className="text-sm font-medium text-slate-500 mt-1">{c.industry || 'Chưa phân loại'}</div>
@@ -466,59 +466,66 @@ export default function TodayPage() {
         </div>
       </div>
 
-      <div className="card p-4 space-y-3">
-        <div className="flex flex-col gap-3 lg:flex-row">
-          <div className="relative flex-1">
-            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Tìm theo tên khách hàng, ngành hàng..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input pl-10"
-            />
+      <div className="card p-3 mb-6 flex flex-col sm:flex-row flex-wrap gap-3 items-center">
+        <div className="relative flex-1 min-w-[200px] w-full">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Tìm tên khách, ngành hàng..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input pl-9 py-2 w-full text-sm"
+          />
+        </div>
+        
+        <div className="flex w-full sm:w-auto gap-3">
+          <div className="relative">
+            <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <select 
+              value={filterStatus} 
+              onChange={(e) => setFilterStatus(e.target.value)} 
+              className="input pl-8 py-2 text-sm bg-slate-50 cursor-pointer hover:bg-white appearance-none pr-8"
+            >
+              <option value="ALL">Tất cả trạng thái</option>
+              {['DV-Gets', 'DV – CB Kiến Thức', 'DV – Test AI', 'DV – Actual Run', 'DV – Done'].map(s => (
+                <option key={s} value={s}>{s} ({statusCounts[s] || 0})</option>
+              ))}
+            </select>
           </div>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="input lg:w-60">
-            <option value="default">Sắp xếp: Mặc định</option>
-            <option value="deadline">Sắp xếp: Gần hạn nhất trước</option>
-            <option value="name">Sắp xếp: Tên A → Z</option>
+
+          <div className="relative">
+            <Clock size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <select 
+              value={urgency} 
+              onChange={(e) => setUrgency(e.target.value)} 
+              className="input pl-8 py-2 text-sm bg-slate-50 cursor-pointer hover:bg-white appearance-none pr-8"
+            >
+              <option value="ALL">Mức độ gấp: Tất cả</option>
+              <option value="overdue">🔥 Quá hạn ({overdueCount})</option>
+              <option value="soon">⏰ Sắp đến hạn ({soonCount})</option>
+              <option value="meeting">📅 Có lịch hẹn ({meetingCount})</option>
+            </select>
+          </div>
+
+          <select 
+            value={sortBy} 
+            onChange={(e) => setSortBy(e.target.value)} 
+            className="input py-2 text-sm bg-slate-50 cursor-pointer hover:bg-white w-[160px]"
+          >
+            <option value="default">Mặc định</option>
+            <option value="deadline">Gần hạn nhất</option>
+            <option value="name">Tên A → Z</option>
           </select>
+
           {(searchTerm || filterStatus !== 'ALL' || urgency !== 'ALL' || sortBy !== 'default') && (
-            <button className="btn-secondary" onClick={() => { setSearchTerm(''); setFilterStatus('ALL'); setUrgency('ALL'); setSortBy('default'); }}>
-              <X size={14} /> Xóa bộ lọc
+            <button 
+              className="btn-secondary px-3 py-2 shrink-0 text-sm" 
+              onClick={() => { setSearchTerm(''); setFilterStatus('ALL'); setUrgency('ALL'); setSortBy('default'); }}
+              title="Xóa bộ lọc"
+            >
+              <X size={16} />
             </button>
           )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-slate-500"><Filter size={13} /> Trạng thái:</span>
-          {[{ k: 'ALL', n: customers.length }, { k: 'DV-Gets', n: statusCounts['DV-Gets'] || 0 }, { k: 'DV – CB Kiến Thức', n: statusCounts['DV – CB Kiến Thức'] || 0 }, { k: 'DV – Test AI', n: statusCounts['DV – Test AI'] || 0 }, { k: 'DV – Actual Run', n: statusCounts['DV – Actual Run'] || 0 }, { k: 'DV – Done', n: statusCounts['DV – Done'] || 0 }].map(o => (
-            <button
-              key={o.k}
-              onClick={() => setFilterStatus(o.k)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${filterStatus === o.k ? 'border-orange-500 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/30' : 'border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:bg-orange-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}
-            >
-              {o.k === 'ALL' ? 'Tất cả' : o.k} <span className={`ml-1 rounded-full px-1.5 ${filterStatus === o.k ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700'}`}>{o.n}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-slate-500"><Clock size={13} /> Mức độ gấp:</span>
-          {[
-            { k: 'ALL', label: 'Tất cả', n: null as number | null, cls: '' },
-            { k: 'overdue', label: '🔥 Quá hạn', n: overdueCount, cls: 'red' },
-            { k: 'soon', label: '⏰ Sắp đến hạn (≤5 ngày)', n: soonCount, cls: 'amber' },
-            { k: 'meeting', label: '📅 Có lịch hẹn sắp tới', n: meetingCount, cls: 'orange' },
-          ].map(o => (
-            <button
-              key={o.k}
-              onClick={() => setUrgency(o.k)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${urgency === o.k ? 'border-orange-500 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/30' : 'border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:bg-orange-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}
-            >
-              {o.label}{o.n !== null && <span className={`ml-1 rounded-full px-1.5 ${urgency === o.k ? 'bg-white/25' : o.n > 0 && o.cls === 'red' ? 'bg-red-100 text-red-700' : 'bg-slate-100 dark:bg-slate-700'}`}>{o.n}</span>}
-            </button>
-          ))}
         </div>
       </div>
 
