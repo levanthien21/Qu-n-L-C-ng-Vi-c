@@ -101,6 +101,18 @@ export default function TodayPage() {
   const [syncing, setSyncing] = useState<string | null>(null);
   const [detailCustomer, setDetailCustomer] = useState<Customer | null>(null);
 
+  
+  const getBadgeTone = (status: string): any => {
+     switch (status) {
+        case 'DV-Gets': return 'red';
+        case 'DV – CB Kiến Thức': return 'dark-green';
+        case 'DV – Test AI': return 'dark-yellow';
+        case 'DV – Actual Run': return 'dark-blue';
+        case 'DV – Done': return 'green';
+        default: return 'slate';
+     }
+  };
+
   const getCustomerStatus = (stats: SheetStats) => {
      const getStatus = (name: string) => {
        const m = stats.milestones.find(x => x.name.toLowerCase().includes(name.toLowerCase()));
@@ -272,7 +284,7 @@ export default function TodayPage() {
                    <div className={`flex flex-col gap-2 w-full max-w-[240px] p-3 rounded border ${isCompletedSection ? 'bg-emerald-50/50 border-emerald-100' : 'bg-indigo-50/50 border-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800/50'}`}>
                      <div className="flex justify-between items-center text-xs">
                        <span className="text-slate-600 font-medium">Trạng thái:</span>
-                       <Badge tone={isDone ? 'green' : 'blue'}>{currentStatus}</Badge>
+                       <Badge tone={getBadgeTone(currentStatus)}>{currentStatus}</Badge>
                      </div>
                      <div className="flex justify-between items-center text-xs mt-0.5">
                        <span className="text-slate-600 font-medium">Gói dịch vụ:</span>

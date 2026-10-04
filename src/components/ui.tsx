@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { CUSTOMER_STATUS_LABEL } from '../domain/types';
 import type { CustomerStatusKey } from '../domain/types';
 
-export type Tone = 'red' | 'yellow' | 'green' | 'blue' | 'gray' | 'purple' | 'orange' | 'slate';
+export type Tone = 'red' | 'yellow' | 'green' | 'blue' | 'gray' | 'purple' | 'orange' | 'slate' | 'dark-green' | 'dark-yellow' | 'dark-blue';
 
 const TONE: Record<Tone, string> = {
   red: 'bg-red-100 text-red-700 ring-red-200 dark:bg-red-950/60 dark:text-red-300 dark:ring-red-900',
@@ -15,6 +15,9 @@ const TONE: Record<Tone, string> = {
   purple: 'bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:ring-violet-900',
   orange: 'bg-orange-100 text-orange-700 ring-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:ring-orange-900',
   slate: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800/70 dark:text-slate-400 dark:ring-slate-700',
+  'dark-green': 'bg-green-200 text-green-800 ring-green-400 dark:bg-green-900/80 dark:text-green-200 dark:ring-green-700',
+  'dark-yellow': 'bg-amber-200 text-amber-800 ring-amber-400 dark:bg-amber-900/80 dark:text-amber-200 dark:ring-amber-700',
+  'dark-blue': 'bg-blue-200 text-blue-800 ring-blue-400 dark:bg-blue-900/80 dark:text-blue-200 dark:ring-blue-700',
 };
 
 export function Badge({ tone = 'slate', children, title }: { tone?: Tone; children: ReactNode; title?: string }) {
@@ -120,6 +123,9 @@ export function StatCard({
     purple: 'text-violet-600 dark:text-violet-400',
     orange: 'text-orange-600 dark:text-orange-400',
     slate: 'text-slate-800 dark:text-slate-100',
+    'dark-green': 'text-green-700 dark:text-green-400',
+    'dark-yellow': 'text-amber-700 dark:text-amber-400',
+    'dark-blue': 'text-blue-700 dark:text-blue-400',
   };
   return (
     <div className="card p-3 sm:p-4">
