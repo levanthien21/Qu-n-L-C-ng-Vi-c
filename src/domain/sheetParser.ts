@@ -84,7 +84,7 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
         const mEnd = formatDate(timeline[i][2]);
         const mStatus = String(timeline[i][4] || '').trim();
         
-        if (['Kick-off', 'Buổi 2', 'Buổi 3', 'Nghiệm thu'].includes(mName) || mName.includes('Kick')) {
+        if (mName) {
            result.milestones.push({ name: mName, start: mStart, end: mEnd, status: mStatus });
         }
 
