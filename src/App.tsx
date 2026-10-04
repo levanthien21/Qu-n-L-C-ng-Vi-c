@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import TodayPage from './pages/TodayPage';
 import SettingsPage from './pages/SettingsPage';
 import { useStore } from './store/useStore';
+import { sendTelegramMessage } from './utils/telegram';
 
 function App() {
   const ready = useStore((s) => s.ready);

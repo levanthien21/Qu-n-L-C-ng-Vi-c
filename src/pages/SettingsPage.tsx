@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
+import { sendTelegramMessage } from '../utils/telegram';
 import { Field } from '../components/ui';
 import type { Settings } from '../domain/types';
 

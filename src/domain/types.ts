@@ -176,7 +176,7 @@ export interface Customer {
   completedAt?: string;
   isDemo?: boolean;
   sopChecklist?: Record<string, boolean>;
-  meetingNotes?: { id: string; date: string; note: string }[];
+  meetingNotes?: { id: string; date: string; note: string; notified?: boolean }[];
 }
 
 export interface Settings {
@@ -191,6 +191,10 @@ export interface Settings {
   minTestConversations: number;
   googleScriptUrl?: string;
   theme: 'light' | 'dark' | 'system';
+  telegramToken?: string;
+  telegramChatId?: string;
+  telegramNotifyProgress?: boolean;
+  telegramNotifyMeetings?: boolean;
 }
 
 export interface AppData {

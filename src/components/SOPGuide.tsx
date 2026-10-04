@@ -2,6 +2,7 @@ import { ExternalLink, AlertTriangle, CheckSquare, Square } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Customer } from '../domain/types';
 import { ProgressBar } from './ui';
+import { sendTelegramMessage } from '../utils/telegram';
 
 export function SOPGuide({ customer }: { customer: Customer }) {
   const updateCustomer = useStore(s => s.updateCustomer);
@@ -17,6 +18,20 @@ export function SOPGuide({ customer }: { customer: Customer }) {
     const toggle = () => {
       const newChecklist = { ...checklist, [id]: !isChecked };
       updateCustomer(customer.id, { sopChecklist: newChecklist });
+      
+      const { settings } = useStore.getState();
+      if (!isChecked && settings.telegramToken && settings.telegramChatId && settings.telegramNotifyProgress) {
+         let stepName = "";
+         if(typeof children === 'string') stepName = children;
+         else if(Array.isArray(children)) stepName = children.map(x => typeof x === 'string' ? x : '').join('');
+         
+         if(stepName.length > 50) stepName = stepName.substring(0,50) + '...';
+         sendTelegramMessage(
+            settings.telegramToken,
+            settings.telegramChatId,
+            `✅ <b>CẬP NHẬT TIẾN ĐỘ SOP</b>\n\nKhách hàng: <b>${customer.name}</b>\nVừa hoàn thành bước:\n<i>${stepName || 'Một hạng mục trong lộ trình'}</i>`
+         );
+      }
     };
     return (
       <div onClick={toggle} className="flex items-start gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1.5 rounded -ml-1.5 transition-colors group">
