@@ -135,14 +135,22 @@ export default function TodayPage() {
                            <span>Chưa có dữ liệu</span>
                         )}
                       </div>
-                      <button 
-                        disabled={!c.sheetLink || isSyncing}
-                        onClick={() => forceSync(c)}
-                        className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50"
-                      >
-                        <RefreshCw size={10} className={isSyncing ? "animate-spin" : ""} /> 
-                        {isSyncing ? 'Đang lấy dữ liệu...' : 'Đồng bộ lại'}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          disabled={!c.sheetLink || isSyncing}
+                          onClick={() => forceSync(c)}
+                          className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50"
+                        >
+                          <RefreshCw size={10} className={isSyncing ? "animate-spin" : ""} /> 
+                          {isSyncing ? 'Đang lấy...' : 'Đồng bộ'}
+                        </button>
+                        <button 
+                          onClick={() => window.confirm('Bạn có chắc muốn xóa khách hàng này?') && useStore.getState().deleteCustomer(c.id)}
+                          className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-600"
+                        >
+                          Xóa
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>
