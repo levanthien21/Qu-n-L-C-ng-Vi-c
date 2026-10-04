@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { repository } from '../data';
 import { normalizeData } from '../data/localStorageRepository';
 import { buildDemoData } from '../data/seed/demoCustomers';
@@ -36,7 +36,7 @@ interface State {
   init(): Promise<void>;
   refreshToday(): void;
 
-  // Khách hàng
+  // KhÃ¡ch hÃ ng
   addCustomer(input: NewCustomerInput, templateId: string, autoCompletePast: boolean): string | null;
   updateCustomer(id: string, patch: Partial<Customer>): void;
   deleteCustomer(id: string): void;
@@ -44,7 +44,7 @@ interface State {
   rescheduleStart(id: string, newStart: DateStr, reason: string): void;
   toggleMeetingConfirmed(id: string, no: 1 | 2 | 3): void;
 
-  // Đầu việc
+  // Äáº§u viá»‡c
   setTaskStatus(taskId: string, status: TaskStatus): void;
   completeTask(taskId: string, overrideReason?: string): void;
   reopenTask(taskId: string): void;
@@ -57,7 +57,7 @@ interface State {
   deleteTask(taskId: string): void;
   moveCustomerToPhase(customerId: string, phaseCode: string | null): void;
 
-  // Nhật ký / báo cáo
+  // Nháº­t kÃ½ / bÃ¡o cÃ¡o
   addCareLog(customerId: string, log: Omit<CareLog, 'id'>, createFollowUp: boolean): void;
   deleteCareLog(customerId: string, logId: string): void;
   createFollowUpFromLog(customerId: string, logId: string): void;
@@ -67,12 +67,12 @@ interface State {
   deleteAIError(customerId: string, errId: string): void;
   resetAIErrorCycle(customerId: string): void;
 
-  // Template & cài đặt
+  // Template & cÃ i Ä‘áº·t
   saveTemplate(t: Template): void;
   deleteTemplate(id: string): void;
   updateSettings(patch: Partial<Settings>): void;
 
-  // Dữ liệu
+  // Dá»¯ liá»‡u
   importAppData(data: Partial<AppData>): void;
   importCustomers(list: { input: NewCustomerInput; templateId: string }[], autoCompletePast: boolean): number;
   loadDemo(): void;
@@ -85,7 +85,7 @@ function persistData(d: AppData) {
 }
 
 export const useStore = create<State>((set, get) => {
-  /** Cập nhật 1 khách, lưu lại */
+  /** Cáº­p nháº­t 1 khÃ¡ch, lÆ°u láº¡i */
   const patchCustomer = (id: string, fn: (c: Customer) => Customer) => {
     const c = get().customers.find((x) => x.id === id);
     if (!c) return;
@@ -94,7 +94,7 @@ export const useStore = create<State>((set, get) => {
     void repository.saveCustomer(next);
   };
 
-  /** Cập nhật 1 việc, lưu lại */
+  /** Cáº­p nháº­t 1 viá»‡c, lÆ°u láº¡i */
   const patchTask = (id: string, fn: (t: Task) => Task) => {
     const t = get().tasks.find((x) => x.id === id);
     if (!t) return;
@@ -151,7 +151,7 @@ export const useStore = create<State>((set, get) => {
       });
       applyTheme(data.settings.theme);
       sweepRecurring();
-      // Tự cập nhật khi sang ngày mới hoặc khi quay lại tab
+      // Tá»± cáº­p nháº­t khi sang ngÃ y má»›i hoáº·c khi quay láº¡i tab
       const onFocus = () => get().refreshToday();
       window.addEventListener('focus', onFocus);
       document.addEventListener('visibilitychange', onFocus);
@@ -167,11 +167,11 @@ export const useStore = create<State>((set, get) => {
       }
     },
 
-    // ---------------- Khách hàng ----------------
+    // ---------------- KhÃ¡ch hÃ ng ----------------
     addCustomer(input, templateId, autoCompletePast) {
-      const template = get().templates.find((t) => t.id === templateId);
-      if (!template) return null;
-      const r = createCustomerFromTemplate(input, template, { today: get().today, autoCompletePast });
+      
+      
+      const r = { customer: { id: Date.now().toString(), ...input, templateId: "", templateName: "", durationDays: 0, endDate: input.startDate, meetingConfirmed: {}, testReport: { testPageLink: "", simulatedConversations: 0, customerTestVideoLink: "", evidenceLinks: [] }, createdAt: new Date().toISOString(), phases: [], recurringRules: [], careLogs: [], aiErrors: [], manualStatus: undefined, isDemo: false, aiErrorBaseline: 0, rescheduleLogs: [] }, tasks: [] };
       set({ customers: [...get().customers, r.customer], tasks: [...get().tasks, ...r.tasks] });
       void repository.saveCustomer(r.customer);
       void repository.saveTasks(r.tasks);
@@ -228,7 +228,7 @@ export const useStore = create<State>((set, get) => {
       patchCustomer(id, (c) => ({ ...c, meetingConfirmed: { ...c.meetingConfirmed, [String(no)]: !c.meetingConfirmed[String(no)] } }));
     },
 
-    // ---------------- Đầu việc ----------------
+    // ---------------- Äáº§u viá»‡c ----------------
     setTaskStatus(taskId, status) {
       const today = get().today;
       patchTask(taskId, (t) => {
@@ -353,7 +353,7 @@ export const useStore = create<State>((set, get) => {
         if (t.customerId !== customerId) return t;
         const o = orderOf(t.phaseCode);
         if (o < targetOrder && t.status !== 'done' && !t.ruleId) {
-          const nt: Task = { ...t, status: 'done', doneAt: today, gatePassed: t.isGate ? true : t.gatePassed, unlockReason: t.unlockReason ?? (t.isGate ? 'Chuyển giai đoạn thủ công (Kanban)' : undefined), updatedAt: today };
+          const nt: Task = { ...t, status: 'done', doneAt: today, gatePassed: t.isGate ? true : t.gatePassed, unlockReason: t.unlockReason ?? (t.isGate ? 'Chuyá»ƒn giai Ä‘oáº¡n thá»§ cÃ´ng (Kanban)' : undefined), updatedAt: today };
           changed.push(nt);
           return nt;
         }
@@ -368,7 +368,7 @@ export const useStore = create<State>((set, get) => {
       void repository.saveTasks(changed);
     },
 
-    // ---------------- Nhật ký / báo cáo ----------------
+    // ---------------- Nháº­t kÃ½ / bÃ¡o cÃ¡o ----------------
     addCareLog(customerId, log, createFollowUp) {
       const full: CareLog = { ...log, id: uid('cl') };
       patchCustomer(customerId, (c) => ({ ...c, careLogs: [...c.careLogs, full] }));
@@ -428,7 +428,7 @@ export const useStore = create<State>((set, get) => {
       }));
     },
 
-    // ---------------- Template & cài đặt ----------------
+    // ---------------- Template & cÃ i Ä‘áº·t ----------------
     saveTemplate(t) {
       const exists = get().templates.some((x) => x.id === t.id);
       set({ templates: exists ? get().templates.map((x) => (x.id === t.id ? t : x)) : [...get().templates, t] });
@@ -447,7 +447,7 @@ export const useStore = create<State>((set, get) => {
       applyTheme(s.theme);
     },
 
-    // ---------------- Dữ liệu ----------------
+    // ---------------- Dá»¯ liá»‡u ----------------
     importAppData(data) {
       const d = normalizeData(data);
       if (!d.templates.length) d.templates = defaultTemplates();

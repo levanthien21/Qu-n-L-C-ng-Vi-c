@@ -1,13 +1,21 @@
-import { StrictMode } from 'react';
+﻿import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { HashRouter } from 'react-router-dom';
-import App from './App';
+import App from './App.tsx';
 import './index.css';
 
+class ErrorBoundary extends React.Component<any, any> {
+  constructor(props: any) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error: any) { return { error }; }
+  render() {
+    if (this.state.error) return <div style={{padding: 20, color: 'red'}}><h1>Crash!</h1><pre>{String(this.state.error.stack || this.state.error)}</pre></div>;
+    return this.props.children;
+  }
+}
+
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <HashRouter>
+  <React.StrictMode>
+    <ErrorBoundary>
       <App />
-    </HashRouter>
-  </StrictMode>,
+    </ErrorBoundary>
+  </React.StrictMode>
 );
