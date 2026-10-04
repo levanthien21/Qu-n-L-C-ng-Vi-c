@@ -352,7 +352,7 @@ export default function TodayPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Master Dashboard (Thống kê từ Google Sheet)</h1>
+        <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">Bảng điều khiển trung tâm <span className="text-sm font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">Đồng bộ từ Google Sheet</span></h1>
         <div className="flex items-center gap-2">
           {!settings.googleScriptUrl && (
              <Link to="/cai-dat" className="text-red-500 underline text-sm font-semibold">
