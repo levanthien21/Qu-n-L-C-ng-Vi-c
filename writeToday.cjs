@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+﻿const fs = require('fs');
+const code = `import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { parseSheetData } from '../domain/sheetParser';
@@ -49,7 +50,7 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
                             <div className="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-600" />
                           )}
                         </div>
-                        <span className="`text-sm ${t.done ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200 font-medium'}`">
+                        <span className="\`text-sm \${t.done ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200 font-medium'}\`">
                           {t.name}
                         </span>
                       </li>
@@ -80,12 +81,12 @@ export default function TodayPage() {
 
   const forceSync = async (c: Customer) => {
     if (!settings.googleScriptUrl || !c.sheetLink) return;
-    const match = c.sheetLink.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    const match = c.sheetLink.match(/\\/d\\/([a-zA-Z0-9-_]+)/);
     if (!match) { alert('Link Google Sheet không đúng định dạng!'); return; }
     
     setSyncing(c.id);
     try {
-      const res = await fetch(`${settings.googleScriptUrl}?id=${match[1]}`);
+      const res = await fetch(\`\${settings.googleScriptUrl}?id=\${match[1]}\`);
       const data = await res.json();
       if (data.success && data.data) {
          useStore.getState().updateCustomer(c.id, { 
@@ -102,7 +103,7 @@ export default function TodayPage() {
   };
 
   const getRemainingDays = (dateStr: string) => {
-    if (!dateStr || !dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return null;
+    if (!dateStr || !dateStr.match(/^\\d{4}-\\d{2}-\\d{2}/)) return null;
     const today = new Date();
     today.setHours(0,0,0,0);
     const target = new Date(dateStr);
@@ -112,9 +113,9 @@ export default function TodayPage() {
   };
   
   const formatDateVN = (dateStr: string) => {
-     if (!dateStr || !dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return dateStr || '---';
+     if (!dateStr || !dateStr.match(/^\\d{4}-\\d{2}-\\d{2}/)) return dateStr || '---';
      const [y, m, d] = dateStr.split('-');
-     return `${d}/${m}`;
+     return \`\${d}/\${m}\`;
   };
 
   const total = customers.length;
@@ -250,8 +251,8 @@ export default function TodayPage() {
                        {remainingDays !== null && (
                          <div className="flex items-center gap-1 mt-0.5">
                            <Clock size={10} className={remainingDays < 0 ? "text-red-500" : remainingDays <= 3 ? "text-amber-500" : "text-emerald-500"} />
-                           <span className="`text-[10px] font-semibold ${remainingDays < 0 ? 'text-red-600' : remainingDays <= 3 ? 'text-amber-600' : 'text-emerald-600'}`">
-                             {remainingDays < 0 ? `Quá hạn ${-remainingDays} ngày` : remainingDays === 0 ? "Hạn cuối là hôm nay" : `Còn lại ${remainingDays} ngày`}
+                           <span className="\`text-[10px] font-semibold \${remainingDays < 0 ? 'text-red-600' : remainingDays <= 3 ? 'text-amber-600' : 'text-emerald-600'}\`">
+                             {remainingDays < 0 ? \`Quá hạn \${-remainingDays} ngày\` : remainingDays === 0 ? "Hạn cuối là hôm nay" : \`Còn lại \${remainingDays} ngày\`}
                            </span>
                          </div>
                        )}
@@ -328,3 +329,5 @@ export default function TodayPage() {
     </div>
   );
 }
+`;
+fs.writeFileSync('src/pages/TodayPage.tsx', code, 'utf8');

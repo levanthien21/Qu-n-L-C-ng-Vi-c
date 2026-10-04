@@ -1,0 +1,17 @@
+﻿const fs=require('fs');
+let c=fs.readFileSync('src/domain/sheetParser.ts', 'utf8');
+c=c.replace(/L.*?tr.*?nh tri.*?n khai/g, 'Lộ trình triển khai');
+c=c.replace(/giai \S+n/g, 'giai đoạn');
+c=c.replace(/h\S+ng m\S+c/g, 'hạng mục');
+c=c.replace(/Timeline 30 ng\S+y/g, 'Timeline 30 ngày');
+c=c.replace(/Timeline 14 ng\S+y/g, 'Timeline 14 ngày');
+c=c.replace(/Giai \S+n/g, 'Giai đoạn');
+c=c.replace(/B\S+t \S+u/g, 'Bắt đầu');
+c=c.replace(/Bu\S+i 2/g, 'Buổi 2');
+c=c.replace(/Nghi\S+m thu/g, 'Nghiệm thu');
+c=c.replace(/c\S+ng vi\S+c/g, 'công việc');
+c=c.replace(/ng\S+y ho\S+n th\S+nh/g, 'ngày hoàn thành');
+c=c.replace(/tr\S+ng th\S+i/g, 'trạng thái');
+c=c.replace/\S+ ho\S+n th\S+nh/g, 'đã hoàn thành');
+c=c.replace(/Đã hoàn thành/g, 'Đã hoàn thành');
+fs.writeFileSync('src/domain/sheetParser.ts', c, 'utf8');

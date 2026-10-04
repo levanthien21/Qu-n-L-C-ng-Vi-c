@@ -1,4 +1,6 @@
-export interface SheetStats {
+﻿const fs = require('fs');
+
+const code = `export interface SheetStats {
   totalTasks: number;
   completedTasks: number;
   percent: number;
@@ -23,11 +25,11 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
 
   const formatDate = (rawDate: any): string => {
     if (!rawDate) return '';
-    if (typeof rawDate === 'string' && rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+    if (typeof rawDate === 'string' && rawDate.match(/^\\d{4}-\\d{2}-\\d{2}/)) {
       return rawDate.substring(0, 10);
     } else if (typeof rawDate === 'string' && rawDate.includes('/')) {
       const parts = rawDate.split('/');
-      if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      if (parts.length === 3) return \`\${parts[2]}-\${parts[1].padStart(2, '0')}-\${parts[0].padStart(2, '0')}\`;
     }
     return String(rawDate);
   };
@@ -99,15 +101,15 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
 
         if (rawDate) {
           let dateStr = '';
-          if (typeof rawDate === 'string' && rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+          if (typeof rawDate === 'string' && rawDate.match(/^\\d{4}-\\d{2}-\\d{2}/)) {
             dateStr = rawDate.substring(0, 10);
           } else if (typeof rawDate === 'string' && rawDate.includes('/')) {
             const parts = rawDate.split('/');
-            if (parts.length === 3) dateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            if (parts.length === 3) dateStr = \`\${parts[2]}-\${parts[1].padStart(2, '0')}-\${parts[0].padStart(2, '0')}\`;
           }
 
           if (dateStr && dateStr < todayStr) {
-            result.overdueTasks.push(name + ` (Hạn: ${dateStr})`);
+            result.overdueTasks.push(name + \` (Hạn: \${dateStr})\`);
           }
         }
       }
@@ -121,3 +123,5 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
 
   return result;
 }
+`;
+fs.writeFileSync('src/domain/sheetParser.ts', code, 'utf8');
