@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { parseSheetData } from '../domain/sheetParser';
-import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus, X, Users, Activity, CheckCircle } from 'lucide-react';
+import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus, X, Users, Activity, CheckCircle, CalendarDays } from 'lucide-react';
 import { ProgressBar, Badge } from '../components/ui';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import type { Customer } from '../domain/types';
@@ -74,7 +74,6 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
 export default function TodayPage() {
   const customers = useStore((s) => s.customers);
   const settings = useStore((s) => s.settings);
-  const updateCustomer = useStore((s) => s.updateCustomer);
   const [addOpen, setAddOpen] = useState(false);
   const [syncing, setSyncing] = useState<string | null>(null);
   const [detailCustomer, setDetailCustomer] = useState<Customer | null>(null);
@@ -122,7 +121,6 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* Thống kê */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="card p-4 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -157,11 +155,10 @@ export default function TodayPage() {
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-500 dark:bg-slate-800">
             <tr>
-              <th className="p-3 font-medium min-w-[200px]">Khách hàng / Doanh nghiệp</th>
-              <th className="p-3 font-medium">Lộ trình (Tiến độ)</th>
-              <th className="p-3 font-medium min-w-[180px]">Việc trễ hạn (30 ngày)</th>
-              <th className="p-3 font-medium">Deadline</th>
-              <th className="p-3 font-medium">Ngày nghiệm thu</th>
+              <th className="p-3 font-medium min-w-[180px]">Khách hàng / Doanh nghiệp</th>
+              <th className="p-3 font-medium min-w-[160px]">Lộ trình (Tiến độ)</th>
+              <th className="p-3 font-medium min-w-[160px]">Việc trễ hạn (30 ngày)</th>
+              <th className="p-3 font-medium min-w-[280px]">Cột mốc (Timeline 30 ngày)</th>
               <th className="p-3 font-medium min-w-[130px]">Đồng bộ</th>
             </tr>
           </thead>
@@ -197,11 +194,11 @@ export default function TodayPage() {
                         <span className="text-xs text-slate-400">{c.sheetData ? 'Chưa bắt đầu' : 'Đang quét...'}</span>
                       )}
                     </div>
-                    <div className="flex items-center justify-between mb-1 w-32">
+                    <div className="flex items-center justify-between mb-1 w-full max-w-[140px]">
                       <span className="text-xs font-semibold">{stats.percent}%</span>
                       <span className="text-[10px] text-slate-500">{stats.completedTasks} / {stats.totalTasks} việc</span>
                     </div>
-                    <div className="w-32">
+                    <div className="w-full max-w-[140px]">
                       <ProgressBar percent={stats.percent} tone={isDanger ? 'red' : 'indigo'} />
                     </div>
                   </td>
@@ -210,9 +207,9 @@ export default function TodayPage() {
                     {stats.overdueTasks.length > 0 ? (
                       <ul className="space-y-1">
                         {stats.overdueTasks.map((t, i) => (
-                          <li key={i} className="text-xs text-red-600 dark:text-red-400 flex gap-1">
+                          <li key={i} className="text-[11px] text-red-600 dark:text-red-400 flex gap-1">
                             <AlertTriangle size={12} className="shrink-0 mt-0.5" />
-                            <span>{t}</span>
+                            <span className="leading-tight">{t}</span>
                           </li>
                         ))}
                       </ul>
@@ -228,21 +225,28 @@ export default function TodayPage() {
                   </td>
 
                   <td className="p-3 align-top">
-                    <input 
-                      type="date" 
-                      className="text-xs border border-slate-200 dark:border-slate-700 rounded px-2 py-1 bg-transparent w-[110px]"
-                      value={c.endDate || ''}
-                      onChange={(e) => updateCustomer(c.id, { endDate: e.target.value })}
-                    />
-                  </td>
-
-                  <td className="p-3 align-top">
-                    <input 
-                      type="date" 
-                      className="text-xs border border-slate-200 dark:border-slate-700 rounded px-2 py-1 bg-transparent w-[110px]"
-                      value={c.handoverDate || ''}
-                      onChange={(e) => updateCustomer(c.id, { handoverDate: e.target.value })}
-                    />
+                    {stats.milestones.length > 0 ? (
+                      <div className="space-y-2">
+                        {stats.milestones.map((m, i) => {
+                          const isDone = m.status.toLowerCase().includes('hoàn thành');
+                          const isDoing = m.status.toLowerCase().includes('đang thực hiện');
+                          return (
+                            <div key={i} className="flex items-center justify-between gap-2 text-[11px] bg-white dark:bg-slate-800 p-1.5 rounded border border-slate-100 dark:border-slate-700 shadow-sm">
+                               <div className="flex items-center gap-1.5 flex-1">
+                                 <CalendarDays size={12} className={isDone ? "text-emerald-500" : isDoing ? "text-amber-500" : "text-slate-400"} />
+                                 <div className="flex flex-col leading-tight">
+                                   <span className="font-semibold text-slate-700 dark:text-slate-200">{m.name}</span>
+                                   <span className="text-slate-500 text-[10px]">{m.start || '?'} - {m.end || '?'}</span>
+                                 </div>
+                               </div>
+                               <Badge tone={isDone ? 'green' : isDoing ? 'orange' : 'slate'}>{m.status || 'Trống'}</Badge>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400 text-center block w-full">Đang chờ quét Sheet...</span>
+                    )}
                   </td>
 
                   <td className="p-3 align-top">
@@ -281,7 +285,7 @@ export default function TodayPage() {
             
             {customers.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-500">
+                <td colSpan={5} className="p-8 text-center text-slate-500">
                    Chưa có khách hàng nào. <button onClick={() => setAddOpen(true)} className="text-indigo-600 underline">Thêm khách hàng ngay</button>
                 </td>
               </tr>

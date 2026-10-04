@@ -5,6 +5,7 @@ export interface SheetStats {
   currentPhase: string;
   tasks: { phase: string; name: string; done: boolean }[];
   overdueTasks: string[];
+  milestones: { name: string; start: string; end: string; status: string }[];
 }
 
 export function parseSheetData(data: Record<string, any[][]> | undefined): SheetStats {
@@ -15,11 +16,23 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
     currentPhase: '',
     tasks: [],
     overdueTasks: [],
+    milestones: [],
   };
 
   if (!data || Object.keys(data).length === 0) return result;
 
-  // 1. Phân tích sheet Lộ trình triển khai để đếm tiến độ
+  const formatDate = (rawDate: any): string => {
+    if (!rawDate) return '';
+    if (typeof rawDate === 'string' && rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+      return rawDate.substring(0, 10);
+    } else if (typeof rawDate === 'string' && rawDate.includes('/')) {
+      const parts = rawDate.split('/');
+      if (parts.length === 3) return `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}`;
+    }
+    return String(rawDate);
+  };
+
+  // 1. Phân tích sheet Lộ trình triển khai
   const loTrinh = data['Lộ trình triển khai'];
   if (loTrinh && loTrinh.length > 0) {
     let currentPhase = '';
@@ -47,15 +60,27 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
     }
   }
 
-  // 2. Phân tích sheet Timeline 30 ngày (hoặc 14 ngày) để tìm việc trễ hạn
-  const timeline = data['Timeline 30 ngày'] || data['Timeline 14 ngày'];
+  // 2. Phân tích sheet Timeline 30 ngày (hoặc 14 ngày)
+  const timeline = data['Timeline 30 ngày '] || data['Timeline 30 ngày'] || data['Timeline 14 ngày '] || data['Timeline 14 ngày'];
   if (timeline && timeline.length > 0) {
-    let nameIdx = -1,
-      dateIdx = -1,
-      statusIdx = -1;
+    // 2.1 Tìm bảng LỊCH GIAI ĐOẠN (Milestones)
+    let mIdx = timeline.findIndex((r: any[]) => String(r[0]).trim() === 'Giai đoạn' && String(r[1]).trim() === 'Bắt đầu');
+    if (mIdx >= 0) {
+      for (let i = mIdx + 1; i < mIdx + 10; i++) {
+        if (!timeline[i] || !timeline[i][0]) break;
+        const mName = String(timeline[i][0]).trim();
+        const mStart = formatDate(timeline[i][1]);
+        const mEnd = formatDate(timeline[i][2]);
+        const mStatus = String(timeline[i][4] || '').trim();
+        if (['Kick-off', 'Buổi 2', 'Nghiệm thu'].includes(mName)) {
+           result.milestones.push({ name: mName, start: mStart, end: mEnd, status: mStatus });
+        }
+      }
+    }
 
-    // Tìm cột Header
-    for (let i = 0; i < Math.min(10, timeline.length); i++) {
+    // 2.2 Tìm việc trễ hạn
+    let nameIdx = -1, dateIdx = -1, statusIdx = -1;
+    for (let i = 0; i < Math.min(20, timeline.length); i++) {
       for (let j = 0; j < timeline[i].length; j++) {
         const val = String(timeline[i][j] || '').toLowerCase();
         if (val.includes('hạng mục') || val.includes('công việc')) nameIdx = j;
@@ -78,11 +103,9 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
 
         if (rawDate) {
           let dateStr = '';
-          // Nếu Google Script trả về string dạng ISO
           if (typeof rawDate === 'string' && rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
             dateStr = rawDate.substring(0, 10);
           } else if (typeof rawDate === 'string' && rawDate.includes('/')) {
-            // dd/mm/yyyy
             const parts = rawDate.split('/');
             if (parts.length === 3) dateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
           }
