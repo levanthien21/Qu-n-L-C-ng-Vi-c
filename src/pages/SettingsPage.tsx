@@ -65,23 +65,7 @@ export default function SettingsPage() {
         </Field>
       </section>
 
-      <section className="card p-4">
-        <h2 className="section-title">Dữ liệu mẫu</h2>
-        <div className="flex flex-wrap gap-2">
-          <button className="btn-secondary" onClick={() => { store.loadDemo(); window.alert('Đã nạp dữ liệu mẫu (nếu chưa có).'); }}>
-            Nạp lại 4 khách mẫu
-          </button>
-          <button className="btn-secondary" onClick={() => window.confirm('Xóa các khách mẫu (chỉ khách có nhãn "Dữ liệu mẫu")?') && store.removeDemo()}>
-            Xóa khách mẫu
-          </button>
-          <button
-            className="btn-danger"
-            onClick={() => window.confirm('XÓA TOÀN BỘ khách và đầu việc? Template được giữ lại. Hãy backup trước!') && store.clearAll()}
-          >
-            Xóa toàn bộ khách
-          </button>
-        </div>
-      </section>
+      
 
             <section className="card p-4">
         <h2 className="section-title flex items-center gap-2">
@@ -135,7 +119,7 @@ export default function SettingsPage() {
             Nhập / Xuất dữ liệu
           </Link>
         </div>
-        <p className="mt-3 text-xs text-slate-500">Giai đoạn 2 (dự kiến): nhắc mỗi sáng qua Telegram / Zalo / email và đồng bộ Supabase.</p>
+        
       </section>
     </div>
   );
