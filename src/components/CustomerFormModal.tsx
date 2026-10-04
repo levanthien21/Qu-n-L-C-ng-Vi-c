@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import type { Customer } from '../domain/types';
 import { Field, Modal } from './ui';
