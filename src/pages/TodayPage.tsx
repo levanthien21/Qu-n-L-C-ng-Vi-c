@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { parseSheetData } from '../domain/sheetParser';
-import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus, X, Users, Activity, CheckCircle, Clock, CalendarDays } from 'lucide-react';
-import { ProgressBar, Badge } from '../components/ui';
+import { ExternalLink, RefreshCw, CheckCircle2, Plus, X, Users, Activity, CheckCircle, Clock, CalendarDays } from 'lucide-react';
+import { Badge } from '../components/ui';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import type { Customer } from '../domain/types';
 
@@ -25,29 +25,6 @@ function CustomerDetailModal({ customer, onClose }: { customer: Customer; onClos
         </div>
         
         <div className="p-4 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900">
-          {stats.milestones.length > 0 && (
-            <div className="mb-6 bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
-              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><CalendarDays size={16} className="text-indigo-500"/> Lịch triển khai (Milestones)</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {stats.milestones.map((m, i) => {
-                  const isDone = m.status.toLowerCase().includes('hoàn thành');
-                  const isDoing = m.status.toLowerCase().includes('đang thực hiện');
-                  return (
-                    <div key={i} className="flex items-center justify-between gap-2 text-xs bg-slate-50 dark:bg-slate-700/30 p-2 rounded border border-slate-100 dark:border-slate-700/50">
-                       <div className="flex items-center gap-2">
-                         <div className="flex flex-col leading-tight">
-                           <span className="font-semibold text-slate-700 dark:text-slate-200">{m.name}</span>
-                           <span className="text-slate-500 text-[10px] mt-0.5">{m.start || '?'} - {m.end || '?'}</span>
-                         </div>
-                       </div>
-                       <Badge tone={isDone ? 'green' : isDoing ? 'orange' : 'slate'}>{m.status || 'Trống'}</Badge>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
           <div className="space-y-4">
             {phases.map((phase, idx) => {
               const phaseTasks = stats.tasks.filter(t => t.phase === phase);
@@ -146,29 +123,54 @@ export default function TodayPage() {
      return `${d}/${m}/${y}`;
   };
 
+  const checkIsCompleted = (sheetData: any) => {
+     const stats = parseSheetData(sheetData);
+     const mNghiemThu = stats.milestones.find(m => m.name.toLowerCase().includes('nghiệm thu'));
+     return mNghiemThu?.status.toLowerCase().includes('hoàn thành') || false;
+  };
+
   const total = customers.length;
-  const completedCount = customers.filter(c => parseSheetData(c.sheetData).percent === 100).length;
+  const completedCount = customers.filter(c => checkIsCompleted(c.sheetData)).length;
   const inProgressCount = total - completedCount;
 
-  const renderTable = (list: Customer[], emptyMessage: string) => (
+  const renderTable = (list: Customer[], emptyMessage: string, isCompletedSection = false) => (
     <div className="card overflow-x-auto mb-8">
       <table className="w-full text-left text-sm">
         <thead className="bg-slate-50 text-slate-500 dark:bg-slate-800">
           <tr>
-            <th className="p-3 font-medium min-w-[180px]">Khách hàng</th>
-            <th className="p-3 font-medium min-w-[160px]">Tiến độ</th>
-            <th className="p-3 font-medium min-w-[280px]">Lịch trình Nghiệm thu</th>
+            <th className="p-3 font-medium min-w-[200px]">Khách hàng</th>
+            <th className="p-3 font-medium min-w-[250px]">Tiến độ các buổi (Lịch trình)</th>
+            <th className="p-3 font-medium min-w-[250px]">Deadline Nghiệm thu</th>
             <th className="p-3 font-medium min-w-[130px]">Đồng bộ</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {list.map(c => {
             const stats = parseSheetData(c.sheetData);
-            const isDanger = stats.percent < 100 && stats.percent > 0;
             const isSyncing = syncing === c.id;
             
             const handoverDate = addDays(stats.startDate, stats.durationDays);
             const remainingDays = getRemainingDays(handoverDate);
+            
+            const mKickoff = stats.milestones.find(m => m.name.toLowerCase().includes('kick-off') || m.name.toLowerCase().includes('kick off'));
+            const mBuoi2 = stats.milestones.find(m => m.name.toLowerCase().includes('buổi 2'));
+            const mBuoi3 = stats.milestones.find(m => m.name.toLowerCase().includes('buổi 3'));
+            const mNghiemThu = stats.milestones.find(m => m.name.toLowerCase().includes('nghiệm thu'));
+
+            const MilestoneRow = ({ name, m }: { name: string, m?: {start: string, end: string, status: string} }) => {
+               if (!m) return null;
+               const isDone = m.status.toLowerCase().includes('hoàn thành');
+               const isDoing = m.status.toLowerCase().includes('đang thực hiện');
+               return (
+                 <div className="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-800/50 px-2 py-1.5 rounded border border-slate-100 dark:border-slate-700/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-600 dark:text-slate-300 font-medium w-16">{name}</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-100">{formatDateVN(m.start || m.end)}</span>
+                    </div>
+                    <Badge tone={isDone ? 'green' : isDoing ? 'orange' : 'slate'}>{m.status || 'Trống'}</Badge>
+                 </div>
+               );
+            };
             
             return (
               <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
@@ -184,47 +186,42 @@ export default function TodayPage() {
                   ) : (
                     <div className="text-[11px] text-red-500 mt-1">⚠️ Chưa dán link Sheet</div>
                   )}
+                  
+                  <div className="mt-3">
+                    <button onClick={() => setDetailCustomer(c)} className="text-[11px] text-indigo-500 hover:underline flex items-center gap-1">
+                      <CalendarDays size={12} /> Xem lộ trình chi tiết
+                    </button>
+                  </div>
                 </td>
                 
-                <td className="p-3 align-top cursor-pointer" onClick={() => setDetailCustomer(c)}>
-                  <div className="mb-2">
-                    {stats.currentPhase ? (
-                      <Badge tone={stats.currentPhase.includes('hoàn thành') ? 'green' : 'blue'}>
-                        {stats.currentPhase}
-                      </Badge>
-                    ) : (
-                      <span className="text-xs text-slate-400">{c.sheetData ? 'Chưa bắt đầu' : 'Đang quét...'}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between mb-1 w-full max-w-[160px]">
-                    <span className="text-xs font-semibold">{stats.percent}%</span>
-                    <span className="text-[10px] text-slate-500">{stats.completedTasks} / {stats.totalTasks} việc</span>
-                  </div>
-                  <div className="w-full max-w-[160px]">
-                    <ProgressBar percent={stats.percent} tone={stats.percent === 100 ? 'green' : isDanger ? 'red' : 'indigo'} />
-                  </div>
+                <td className="p-3 align-top">
+                   <div className="flex flex-col gap-1.5 text-xs w-full max-w-[240px]">
+                     <MilestoneRow name="Kick-off" m={mKickoff} />
+                     <MilestoneRow name="Buổi 2" m={mBuoi2} />
+                     <MilestoneRow name="Buổi 3" m={mBuoi3} />
+                   </div>
                 </td>
 
                 <td className="p-3 align-top">
-                   <div className="flex flex-col gap-2 w-full max-w-[260px] bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded border border-slate-100 dark:border-slate-700/50">
+                   <div className={`flex flex-col gap-2 w-full max-w-[240px] p-3 rounded border ${isCompletedSection ? 'bg-emerald-50/50 border-emerald-100' : 'bg-indigo-50/50 border-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800/50'}`}>
                      <div className="flex justify-between items-center text-xs">
-                       <span className="text-slate-500 font-medium">Ngày triển khai (Kick-off):</span>
-                       <span className="font-semibold text-slate-700 dark:text-slate-300">{stats.startDate ? formatDateVN(stats.startDate) : '---'}</span>
-                     </div>
-                     <div className="flex justify-between items-center text-xs">
-                       <span className="text-slate-500 font-medium">Gói dịch vụ:</span>
+                       <span className="text-slate-600 font-medium">Gói dịch vụ:</span>
                        <Badge tone="slate">{stats.durationDays} ngày</Badge>
                      </div>
-                     <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
                      <div className="flex justify-between items-center text-xs">
-                       <span className="text-indigo-600 dark:text-indigo-400 font-bold">Ngày nghiệm thu:</span>
-                       <span className="font-bold text-indigo-700 dark:text-indigo-300">
+                       <span className="text-slate-600 font-medium">Trạng thái:</span>
+                       <Badge tone={isCompletedSection ? 'green' : 'blue'}>{mNghiemThu?.status || (isCompletedSection ? 'Hoàn thành' : 'Đang triển khai')}</Badge>
+                     </div>
+                     <div className={`border-t my-1 ${isCompletedSection ? 'border-emerald-200' : 'border-indigo-100 dark:border-indigo-800'}`}></div>
+                     <div className="flex justify-between items-center text-xs">
+                       <span className={`font-bold ${isCompletedSection ? 'text-emerald-700' : 'text-indigo-700 dark:text-indigo-400'}`}>Ngày nghiệm thu:</span>
+                       <span className={`font-bold text-sm ${isCompletedSection ? 'text-emerald-800' : 'text-indigo-800 dark:text-indigo-300'}`}>
                          {handoverDate ? formatDateVN(handoverDate) : '---'}
                        </span>
                      </div>
-                     {remainingDays !== null && stats.percent < 100 && (
-                       <div className="flex justify-end items-center gap-1 mt-0.5">
-                         <Clock size={12} className={remainingDays < 0 ? "text-red-500" : remainingDays <= 5 ? "text-amber-500" : "text-emerald-500"} />
+                     {remainingDays !== null && !isCompletedSection && (
+                       <div className="flex justify-end items-center gap-1 mt-1">
+                         <Clock size={14} className={remainingDays < 0 ? "text-red-500" : remainingDays <= 5 ? "text-amber-500" : "text-emerald-500"} />
                          <span className={`text-xs font-bold ${remainingDays < 0 ? 'text-red-600' : remainingDays <= 5 ? 'text-amber-600' : 'text-emerald-600'}`}>
                            {remainingDays < 0 ? `Quá hạn ${-remainingDays} ngày` : remainingDays === 0 ? "Hạn cuối là hôm nay" : `Còn lại ${remainingDays} ngày`}
                          </span>
@@ -249,7 +246,7 @@ export default function TodayPage() {
                       <button 
                         disabled={!c.sheetLink || isSyncing}
                         onClick={() => forceSync(c)}
-                        className="flex items-center justify-center gap-1 text-[11px] w-20 py-1.5 rounded font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-600 disabled:opacity-50"
+                        className="flex items-center justify-center gap-1 text-[11px] w-20 py-1.5 rounded font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-50"
                       >
                         <RefreshCw size={10} className={isSyncing ? "animate-spin" : ""} /> 
                         {isSyncing ? 'Đang lấy...' : 'Đồng bộ'}
@@ -279,8 +276,8 @@ export default function TodayPage() {
     </div>
   );
 
-  const activeCustomers = customers.filter(c => parseSheetData(c.sheetData).percent < 100);
-  const completedList = customers.filter(c => parseSheetData(c.sheetData).percent === 100);
+  const activeCustomers = customers.filter(c => !checkIsCompleted(c.sheetData));
+  const completedList = customers.filter(c => checkIsCompleted(c.sheetData));
 
   return (
     <div className="space-y-6">
@@ -342,7 +339,7 @@ export default function TodayPage() {
             <CheckCircle className="text-emerald-500" />
             Khách hàng đã hoàn thành (Nghiệm thu)
           </h2>
-          {renderTable(completedList, "Chưa có khách hàng nào hoàn thành.")}
+          {renderTable(completedList, "Chưa có khách hàng nào hoàn thành.", true)}
         </div>
       )}
       

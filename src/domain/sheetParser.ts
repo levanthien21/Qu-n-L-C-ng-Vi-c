@@ -25,11 +25,20 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
 
   const formatDate = (rawDate: any): string => {
     if (!rawDate) return '';
-    if (typeof rawDate === 'string' && rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
-      return rawDate.substring(0, 10);
-    } else if (typeof rawDate === 'string' && rawDate.includes('/')) {
-      const parts = rawDate.split('/');
-      if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    if (typeof rawDate === 'string') {
+      if (rawDate.match(/^\d{4}-\d{2}-\d{2}T/)) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+      }
+      if (rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+        return rawDate.substring(0, 10);
+      }
+      if (rawDate.includes('/')) {
+        const parts = rawDate.split('/');
+        if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
     }
     return String(rawDate);
   };
@@ -75,7 +84,9 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
         const mEnd = formatDate(timeline[i][2]);
         const mStatus = String(timeline[i][4] || '').trim();
         
-        result.milestones.push({ name: mName, start: mStart, end: mEnd, status: mStatus });
+        if (['Kick-off', 'Buổi 2', 'Buổi 3', 'Nghiệm thu'].includes(mName) || mName.includes('Kick')) {
+           result.milestones.push({ name: mName, start: mStart, end: mEnd, status: mStatus });
+        }
 
         if ((mName.toLowerCase().includes('kick-off') || mName.toLowerCase().includes('kick off')) && !result.startDate) {
           result.startDate = mStart || mEnd || null;
