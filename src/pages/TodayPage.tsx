@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { parseSheetData } from '../domain/sheetParser';
-import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus, X, Users, Activity, CheckCircle, CalendarDays } from 'lucide-react';
+import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle2, Plus, X, Users, Activity, CheckCircle, CalendarDays, Clock } from 'lucide-react';
 import { ProgressBar, Badge } from '../components/ui';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import type { Customer } from '../domain/types';
@@ -101,6 +101,22 @@ export default function TodayPage() {
     setSyncing(null);
   };
 
+  const getRemainingDays = (dateStr: string) => {
+    if (!dateStr || !dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return null;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const target = new Date(dateStr);
+    target.setHours(0,0,0,0);
+    const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+    return diff;
+  };
+  
+  const formatDateVN = (dateStr: string) => {
+     if (!dateStr || !dateStr.match(/^\d{4}-\d{2}-\d{2}/)) return dateStr || '---';
+     const [y, m, d] = dateStr.split('-');
+     return `${d}/${m}`;
+  };
+
   const total = customers.length;
   const completed = customers.filter(c => parseSheetData(c.sheetData).percent === 100).length;
   const inProgress = total - completed;
@@ -155,10 +171,11 @@ export default function TodayPage() {
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-500 dark:bg-slate-800">
             <tr>
-              <th className="p-3 font-medium min-w-[180px]">Khách hàng / Doanh nghiệp</th>
-              <th className="p-3 font-medium min-w-[160px]">Lộ trình (Tiến độ)</th>
-              <th className="p-3 font-medium min-w-[160px]">Việc trễ hạn (30 ngày)</th>
-              <th className="p-3 font-medium min-w-[280px]">Cột mốc (Timeline 30 ngày)</th>
+              <th className="p-3 font-medium min-w-[180px]">Khách hàng</th>
+              <th className="p-3 font-medium min-w-[160px]">Tiến độ</th>
+              <th className="p-3 font-medium min-w-[150px]">Lịch triển khai</th>
+              <th className="p-3 font-medium min-w-[150px]">Deadline Nghiệm thu</th>
+              <th className="p-3 font-medium min-w-[200px]">Việc trễ hạn (30 ngày)</th>
               <th className="p-3 font-medium min-w-[130px]">Đồng bộ</th>
             </tr>
           </thead>
@@ -167,6 +184,12 @@ export default function TodayPage() {
               const stats = parseSheetData(c.sheetData);
               const isDanger = stats.overdueTasks.length > 0;
               const isSyncing = syncing === c.id;
+              
+              const mKickoff = stats.milestones.find(m => m.name.toLowerCase().includes('kick-off') || m.name.toLowerCase().includes('kick off'));
+              const mBuoi2 = stats.milestones.find(m => m.name.toLowerCase().includes('buổi 2'));
+              const mNghiemThu = stats.milestones.find(m => m.name.toLowerCase().includes('nghiệm thu'));
+              
+              const remainingDays = mNghiemThu ? getRemainingDays(mNghiemThu.end) : null;
               
               return (
                 <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
@@ -204,48 +227,54 @@ export default function TodayPage() {
                   </td>
 
                   <td className="p-3 align-top">
+                     <div className="flex flex-col gap-1.5 text-xs w-full max-w-[140px]">
+                       <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 px-2 py-1.5 rounded">
+                         <span className="text-slate-500 font-medium">Kick-off</span>
+                         <span className="font-semibold text-slate-700 dark:text-slate-300">{mKickoff ? formatDateVN(mKickoff.end || mKickoff.start) : '---'}</span>
+                       </div>
+                       <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 px-2 py-1.5 rounded">
+                         <span className="text-slate-500 font-medium">Buổi 2</span>
+                         <span className="font-semibold text-slate-700 dark:text-slate-300">{mBuoi2 ? formatDateVN(mBuoi2.end || mBuoi2.start) : '---'}</span>
+                       </div>
+                     </div>
+                  </td>
+
+                  <td className="p-3 align-top">
+                     <div className="flex flex-col gap-1 w-full max-w-[140px] bg-indigo-50/50 dark:bg-indigo-900/20 px-2 py-1.5 rounded border border-indigo-100 dark:border-indigo-800/50">
+                       <div className="flex justify-between items-center">
+                         <span className="text-xs font-medium text-indigo-700 dark:text-indigo-400">Nghiệm thu</span>
+                         <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300">
+                           {mNghiemThu ? formatDateVN(mNghiemThu.end) : '---'}
+                         </span>
+                       </div>
+                       {remainingDays !== null && (
+                         <div className="flex items-center gap-1 mt-0.5">
+                           <Clock size={10} className={remainingDays < 0 ? "text-red-500" : remainingDays <= 3 ? "text-amber-500" : "text-emerald-500"} />
+                           <span className={`text-[10px] font-semibold ${remainingDays < 0 ? "text-red-600" : remainingDays <= 3 ? "text-amber-600" : "text-emerald-600"}`}>
+                             {remainingDays < 0 ? `Quá hạn ${-remainingDays} ngày` : remainingDays === 0 ? "Hạn cuối là hôm nay" : `Còn lại ${remainingDays} ngày`}
+                           </span>
+                         </div>
+                       )}
+                     </div>
+                  </td>
+
+                  <td className="p-3 align-top">
                     {stats.overdueTasks.length > 0 ? (
-                      <ul className="space-y-1">
-                        {stats.overdueTasks.map((t, i) => (
-                          <li key={i} className="text-[11px] text-red-600 dark:text-red-400 flex gap-1">
-                            <AlertTriangle size={12} className="shrink-0 mt-0.5" />
-                            <span className="leading-tight">{t}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-2 rounded-md border border-red-100 dark:border-red-900/50 w-full max-w-[220px]">
+                        <div className="font-bold mb-1 flex items-center gap-1"><AlertTriangle size={12}/> Trễ {stats.overdueTasks.length} việc:</div>
+                        <ul className="pl-4 list-disc space-y-0.5 leading-tight">
+                           {stats.overdueTasks.slice(0, 2).map((t,i) => <li key={i}>{t}</li>)}
+                           {stats.overdueTasks.length > 2 && <li className="text-[10px] italic">...và {stats.overdueTasks.length - 2} việc khác</li>}
+                        </ul>
+                      </div>
                     ) : (
                       stats.totalTasks > 0 ? (
                          <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                           <CheckCircle2 size={12} /> Không trễ
+                           <CheckCircle2 size={12} /> Không có việc trễ
                          </span>
                       ) : (
                          <span className="text-xs text-slate-400">—</span>
                       )
-                    )}
-                  </td>
-
-                  <td className="p-3 align-top">
-                    {stats.milestones.length > 0 ? (
-                      <div className="space-y-2">
-                        {stats.milestones.map((m, i) => {
-                          const isDone = m.status.toLowerCase().includes('hoàn thành');
-                          const isDoing = m.status.toLowerCase().includes('đang thực hiện');
-                          return (
-                            <div key={i} className="flex items-center justify-between gap-2 text-[11px] bg-white dark:bg-slate-800 p-1.5 rounded border border-slate-100 dark:border-slate-700 shadow-sm">
-                               <div className="flex items-center gap-1.5 flex-1">
-                                 <CalendarDays size={12} className={isDone ? "text-emerald-500" : isDoing ? "text-amber-500" : "text-slate-400"} />
-                                 <div className="flex flex-col leading-tight">
-                                   <span className="font-semibold text-slate-700 dark:text-slate-200">{m.name}</span>
-                                   <span className="text-slate-500 text-[10px]">{m.start || '?'} - {m.end || '?'}</span>
-                                 </div>
-                               </div>
-                               <Badge tone={isDone ? 'green' : isDoing ? 'orange' : 'slate'}>{m.status || 'Trống'}</Badge>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-slate-400 text-center block w-full">Đang chờ quét Sheet...</span>
                     )}
                   </td>
 
@@ -285,7 +314,7 @@ export default function TodayPage() {
             
             {customers.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-slate-500">
+                <td colSpan={6} className="p-8 text-center text-slate-500">
                    Chưa có khách hàng nào. <button onClick={() => setAddOpen(true)} className="text-indigo-600 underline">Thêm khách hàng ngay</button>
                 </td>
               </tr>
