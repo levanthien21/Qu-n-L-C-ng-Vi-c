@@ -10,6 +10,7 @@ import {
 import { formatVN, weekdayVN } from '../domain/dates';
 import { customerWaitingDays } from '../domain/status';
 import { useStore } from '../store/useStore';
+import { sendTelegramMessage } from '../utils/telegram';
 
 const MAIN_NAV = [
   { to: '/', label: 'Bảng điều khiển (Dashboard)', icon: ListChecks, end: true },
@@ -72,7 +73,43 @@ export default function Layout() {
     };
     bgSync(); 
     const iv = setInterval(bgSync, 10 * 60 * 1000); 
-    return () => clearInterval(iv);
+    
+    const meetingReminderLoop = () => {
+       const { settings, customers, updateCustomer } = useStore.getState();
+       if (!settings.telegramToken || !settings.telegramChatId) return;
+       const now = new Date().getTime();
+       
+       for (const c of customers) {
+          let updated = false;
+          const newNotes = (c.meetingNotes || []).map(m => {
+             if (m.done) return m;
+             const mTime = new Date(m.date).getTime();
+             const diffMins = (mTime - now) / 60000;
+             if (diffMins > 0 && diffMins <= 30 && !m.notified) {
+                 sendTelegramMessage(settings.telegramToken!, settings.telegramChatId!, `⏰ [NHẮC LỊCH 30 PHÚT] Sắp tới lịch hẹn với khách hàng **${c.name}**
+- Thời gian: ${new Date(m.date).toLocaleString('vi-VN')}
+- Ghi chú: ${m.note || 'Không có'}`);
+                 updated = true;
+                 return { ...m, notified: true };
+             }
+             if (diffMins > 0 && diffMins <= 10 && !m.notified10) {
+                 sendTelegramMessage(settings.telegramToken!, settings.telegramChatId!, `🔥 [NHẮC LỊCH 10 PHÚT] Khách hàng **${c.name}** đã sắp đến giờ họp!
+- Thời gian: ${new Date(m.date).toLocaleString('vi-VN')}`);
+                 updated = true;
+                 return { ...m, notified10: true };
+             }
+             return m;
+          });
+          if (updated) {
+             updateCustomer(c.id, { meetingNotes: newNotes });
+          }
+       }
+    };
+    
+    meetingReminderLoop();
+    const iv2 = setInterval(meetingReminderLoop, 60 * 1000);
+
+    return () => { clearInterval(iv); clearInterval(iv2); };
   }, [today]);
 
   const NavItem = ({ to, label, icon: Icon, end }: any) => {
