@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req: any, res: any) {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
   try {
     const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://nccbtvknetlnnakpsnvr.supabase.co";
     const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_ipeOUgEM0W09kvBmcKFQ_Q_4_3W-bCH";
