@@ -83,7 +83,7 @@ export default function Layout() {
           let updated = false;
           const newNotes = (c.meetingNotes || []).map(m => {
              if (m.done) return m;
-             const mTime = new Date(m.date).getTime();
+             const mTime = new Date(m.date + '+07:00').getTime();
              const diffMins = (mTime - now) / 60000;
              if (diffMins > 0 && diffMins <= 30 && !m.notified) {
                  sendTelegramMessage(settings.telegramToken!, settings.telegramChatId!, `⏰ [NHẮC LỊCH 30 PHÚT] Sắp tới lịch hẹn với khách hàng **${c.name}**

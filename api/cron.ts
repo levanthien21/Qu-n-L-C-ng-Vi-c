@@ -40,19 +40,22 @@ export default async function handler(req: any, res: any) {
       
       const newNotes = c.meetingNotes.map((m: any) => {
         if (m.done) return m;
-        const mTime = new Date(m.date).getTime();
+        // Fix timezone for Vercel (UTC) by appending +07:00 to the local date string
+        const mTime = new Date(m.date + "+07:00").getTime();
         const diffMins = (mTime - now) / 60000;
         
         let shouldUpdate = false;
         
+        const timeStr = new Date(m.date + "+07:00").toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+
         if (diffMins > 0 && diffMins <= 30 && !m.notified) {
-          sendTelegram(token, chatId, `⏰ [NHẮC LỊCH 30 PHÚT] Sắp tới lịch hẹn với khách hàng **${c.name}**\n- Thời gian: ${new Date(m.date).toLocaleString('vi-VN')}\n- Ghi chú: ${m.note || 'Không có'}`);
+          sendTelegram(token, chatId, `⏰ [NHẮC LỊCH 30 PHÚT] Sắp tới lịch hẹn với khách hàng **${c.name}**\n- Thời gian: ${timeStr}\n- Ghi chú: ${m.note || 'Không có'}`);
           m.notified = true;
           shouldUpdate = true;
         }
         
         if (diffMins > 0 && diffMins <= 10 && !m.notified10) {
-          sendTelegram(token, chatId, `🔥 [NHẮC LỊCH 10 PHÚT] Khách hàng **${c.name}** đã sắp đến giờ họp!\n- Thời gian: ${new Date(m.date).toLocaleString('vi-VN')}`);
+          sendTelegram(token, chatId, `🔥 [NHẮC LỊCH 10 PHÚT] Khách hàng **${c.name}** đã sắp đến giờ họp!\n- Thời gian: ${timeStr}`);
           m.notified10 = true;
           shouldUpdate = true;
         }
