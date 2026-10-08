@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+﻿const fs = require('fs');
+
+const appContent = `import { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import TodayPage from './pages/TodayPage';
@@ -67,3 +69,47 @@ function App() {
   );
 }
 export default App;
+`;
+
+fs.writeFileSync('src/App.tsx', appContent, 'utf8');
+
+// Now update supabaseRepository.ts
+let repo = fs.readFileSync('src/data/supabaseRepository.ts', 'utf8');
+repo = repo.replace(
+  /eq\('id', 'global'\)/g,
+  "eq('id', localStorage.getItem('dvhl_workspace') || 'global')"
+);
+repo = repo.replace(
+  /upsert\(\{ id: 'global'/g,
+  "upsert({ id: localStorage.getItem('dvhl_workspace') || 'global'"
+);
+
+fs.writeFileSync('src/data/supabaseRepository.ts', repo, 'utf8');
+
+// Add "Đăng xuất" button in SettingsPage.tsx
+let settings = fs.readFileSync('src/pages/SettingsPage.tsx', 'utf8');
+const logoutBtn = `
+      <section className="card p-4 border-red-100 bg-red-50/30">
+        <h2 className="section-title text-red-600">Không gian làm việc</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold">Đang đăng nhập mã: <span className="text-indigo-600">{localStorage.getItem('dvhl_workspace')}</span></p>
+            <p className="text-xs text-slate-500 mt-1">Đăng xuất để đổi sang mã của nhân viên khác.</p>
+          </div>
+          <button 
+            className="btn-danger"
+            onClick={() => {
+              if (window.confirm('Đăng xuất khỏi không gian này?')) {
+                 localStorage.removeItem('dvhl_workspace');
+                 window.location.reload();
+              }
+            }}
+          >
+            Đăng xuất
+          </button>
+        </div>
+      </section>
+`;
+settings = settings.replace('</div>\n  );\n}', logoutBtn + '</div>\n  );\n}');
+fs.writeFileSync('src/pages/SettingsPage.tsx', settings, 'utf8');
+

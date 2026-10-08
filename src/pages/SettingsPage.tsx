@@ -121,6 +121,27 @@ export default function SettingsPage() {
         </div>
         
       </section>
-    </div>
+    
+      <section className="card p-4 border-red-100 bg-red-50/30">
+        <h2 className="section-title text-red-600">Không gian làm việc</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold">Đang đăng nhập mã: <span className="text-indigo-600">{localStorage.getItem('dvhl_workspace')}</span></p>
+            <p className="text-xs text-slate-500 mt-1">Đăng xuất để đổi sang mã của nhân viên khác.</p>
+          </div>
+          <button 
+            className="btn-danger"
+            onClick={() => {
+              if (window.confirm('Đăng xuất khỏi không gian này?')) {
+                 localStorage.removeItem('dvhl_workspace');
+                 window.location.reload();
+              }
+            }}
+          >
+            Đăng xuất
+          </button>
+        </div>
+      </section>
+</div>
   );
 }

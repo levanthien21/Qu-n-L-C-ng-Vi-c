@@ -18,14 +18,19 @@ export default async function handler(req: any, res: any) {
     const { data: row, error } = await supabase
       .from('app_data')
       .select('data')
-      .eq('id', 'global')
-      .single();
+      // Fetch ALL rows (all tenants)
+      .select('*');
 
-    if (error || !row || !row.data) {
+    if (error || !row) {
       return res.status(500).json({ error: 'Failed to fetch data' });
     }
-
-    const appData = row.data as any;
+    
+    let globalHasUpdates = false;
+    const updatePromises = [];
+    
+    for (const tenantRow of row) {
+      const appData = tenantRow.data as any;
+      const tenantId = tenantRow.id;
     const settings = appData.settings || {};
     const customers = appData.customers || [];
 
@@ -99,10 +104,13 @@ export default async function handler(req: any, res: any) {
     }
 
     if (hasUpdates) {
-      await supabase.from('app_data').upsert({ id: 'global', data: appData });
-    }
-
-    return res.status(200).json({ success: true, updated: hasUpdates });
+        globalHasUpdates = true;
+        updatePromises.push(supabase.from('app_data').upsert({ id: tenantId, data: appData }));
+      }
+    } // End tenant loop
+    
+    await Promise.all(updatePromises);
+    return res.status(200).json({ success: true, updated: globalHasUpdates });
   } catch (err: any) {
     console.error(err);
     return res.status(500).json({ error: err.message });
