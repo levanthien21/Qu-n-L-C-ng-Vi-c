@@ -1,4 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+﻿const fs = require('fs');
+
+const content = `import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -41,9 +43,9 @@ export default async function handler(req: any, res: any) {
 
     // --- TIMELINE REMINDER (ONCE A DAY) ---
     const vnDateObj = new Date(now + 7 * 3600000);
-    const currentDateStr = `${vnDateObj.getUTCFullYear()}-${String(vnDateObj.getUTCMonth()+1).padStart(2,'0')}-${String(vnDateObj.getUTCDate()).padStart(2,'0')}`;
+    const currentDateStr = \`\${vnDateObj.getUTCFullYear()}-\${String(vnDateObj.getUTCMonth()+1).padStart(2,'0')}-\${String(vnDateObj.getUTCDate()).padStart(2,'0')}\`;
     const tomorrowObj = new Date(now + 7 * 3600000 + 86400000);
-    const tomorrowDateStr = `${tomorrowObj.getUTCFullYear()}-${String(tomorrowObj.getUTCMonth()+1).padStart(2,'0')}-${String(tomorrowObj.getUTCDate()).padStart(2,'0')}`;
+    const tomorrowDateStr = \`\${tomorrowObj.getUTCFullYear()}-\${String(tomorrowObj.getUTCMonth()+1).padStart(2,'0')}-\${String(tomorrowObj.getUTCDate()).padStart(2,'0')}\`;
 
     if (settings.lastTimelineReminder !== currentDateStr) {
        let reportLines: string[] = [];
@@ -55,14 +57,14 @@ export default async function handler(req: any, res: any) {
              if (mIsDone) continue;
              
              if (m.start === currentDateStr || m.end === currentDateStr) {
-                reportLines.push(`🔸 <b>${c.name}</b>: ${m.name} (Hôm nay)`);
+                reportLines.push(\`🔸 <b>\${c.name}</b>: \${m.name} (Hôm nay)\`);
              } else if (m.start === tomorrowDateStr || m.end === tomorrowDateStr) {
-                reportLines.push(`🔹 <b>${c.name}</b>: ${m.name} (Ngày mai)`);
+                reportLines.push(\`🔹 <b>\${c.name}</b>: \${m.name} (Ngày mai)\`);
              }
           }
        }
        if (reportLines.length > 0) {
-          const msg = `📅 <b>BÁO CÁO LỘ TRÌNH TRIỂN KHAI</b>\n\n` + reportLines.join('\n');
+          const msg = \`📅 <b>BÁO CÁO LỘ TRÌNH TRIỂN KHAI</b>\\n\\n\` + reportLines.join('\\n');
           await sendTelegram(token, chatId, msg);
        }
        
@@ -81,13 +83,13 @@ export default async function handler(req: any, res: any) {
         const timeStr = new Date(m.date + "+07:00").toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 
         if (diffMins > 0 && diffMins <= 30 && !m.notified) {
-          sendTelegram(token, chatId, `⏰ [NHẮC LỊCH 30 PHÚT] Sắp tới lịch hẹn với khách hàng <b>${c.name}</b>\n- Thời gian: ${timeStr}\n- Ghi chú: ${m.note || 'Không có'}`);
+          sendTelegram(token, chatId, \`⏰ [NHẮC LỊCH 30 PHÚT] Sắp tới lịch hẹn với khách hàng <b>\${c.name}</b>\\n- Thời gian: \${timeStr}\\n- Ghi chú: \${m.note || 'Không có'}\`);
           m.notified = true;
           shouldUpdate = true;
         }
         
         if (diffMins > 0 && diffMins <= 10 && !m.notified10) {
-          sendTelegram(token, chatId, `🔥 [NHẮC LỊCH 10 PHÚT] Khách hàng <b>${c.name}</b> đã sắp đến giờ họp!\n- Thời gian: ${timeStr}`);
+          sendTelegram(token, chatId, \`🔥 [NHẮC LỊCH 10 PHÚT] Khách hàng <b>\${c.name}</b> đã sắp đến giờ họp!\\n- Thời gian: \${timeStr}\`);
           m.notified10 = true;
           shouldUpdate = true;
         }
@@ -110,7 +112,7 @@ export default async function handler(req: any, res: any) {
 }
 
 async function sendTelegram(token: string, chatId: string, message: string) {
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const url = \`https://api.telegram.org/bot\${token}/sendMessage\`;
   await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -125,18 +127,18 @@ function parseMilestones(data: any): any[] {
   const formatDate = (rawDate: any): string => {
     if (!rawDate) return '';
     if (typeof rawDate === 'string') {
-      if (rawDate.match(/^\d{4}-\d{2}-\d{2}T/)) {
+      if (rawDate.match(/^\\d{4}-\\d{2}-\\d{2}T/)) {
         const d = new Date(rawDate);
         if (!isNaN(d.getTime())) {
-          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          return \`\${d.getFullYear()}-\${String(d.getMonth() + 1).padStart(2, '0')}-\${String(d.getDate()).padStart(2, '0')}\`;
         }
       }
-      if (rawDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+      if (rawDate.match(/^\\d{4}-\\d{2}-\\d{2}/)) {
         return rawDate.substring(0, 10);
       }
       if (rawDate.includes('/')) {
         const parts = rawDate.split('/');
-        if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        if (parts.length === 3) return \`\${parts[2]}-\${parts[1].padStart(2, '0')}-\${parts[0].padStart(2, '0')}\`;
       }
     }
     return String(rawDate);
@@ -158,3 +160,6 @@ function parseMilestones(data: any): any[] {
   }
   return milestones;
 }
+`;
+
+fs.writeFileSync('api/cron.ts', content, 'utf8');
