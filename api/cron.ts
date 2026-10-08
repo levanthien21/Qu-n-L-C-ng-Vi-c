@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req: any, res: any) {
   try {
-    const supabaseUrl = process.env.VITE_SUPABASE_URL;
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://nccbtvknetlnnakpsnvr.supabase.co";
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_ipeOUgEM0W09kvBmcKFQ_Q_4_3W-bCH";
     
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ error: 'Missing Supabase credentials' });
