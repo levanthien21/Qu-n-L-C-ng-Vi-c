@@ -203,7 +203,7 @@ export default function TodayPage() {
           <tr>
             <th className="p-3 font-medium min-w-[200px]">Khách hàng</th>
             <th className="p-3 font-medium min-w-[250px]">Tiến độ các buổi (Lịch trình)</th>
-            <th className="p-3 font-medium min-w-[250px]">Tiến độ nghiệm thu</th>
+            <th className="p-3 font-medium min-w-[250px]">Tiến độ SOP & Nghiệm thu</th>
             <th className="p-3 font-medium min-w-[130px]">Đồng bộ</th>
           </tr>
         </thead>
@@ -326,7 +326,7 @@ export default function TodayPage() {
                                <span>Tiến độ SOP ({stats.durationDays} ngày)</span>
                                <span className={behind ? 'text-red-500' : 'text-emerald-600'}>{sopPct}% ({sopDone}/48)</span>
                              </div>
-                             <ProgressBar percent={sopPct} tone={behind ? 'red' : 'green'} />
+                             <ProgressBar percent={sopPct} tone={behind ? 'red' : undefined} />
                              
                              <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 font-medium">
                                <span>{stats.startDate ? formatDateVN(stats.startDate) : '--'}</span>
