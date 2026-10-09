@@ -1,15 +1,35 @@
-﻿const { createClient } = require('@supabase/supabase-js');
-const supabaseUrl = 'https://nccbtvknetlnnakpsnvr.supabase.co';
-const supabaseKey = 'sb_publishable_ipeOUgEM0W09kvBmcKFQ_Q_4_3W-bCH';
-const supabase = createClient(supabaseUrl, supabaseKey);
+﻿require('dotenv').config();
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 
-async function check() {
-  const { data, error } = await supabase.from('app_data').select('*').eq('id', 'global').single();
-  if (error || !data) { console.log('Error or empty', error); return; }
-  console.log('Customers count:', data.data.customers?.length);
-  if (data.data.customers?.length > 0) {
-     console.log('First customer name:', data.data.customers[0].name);
-     console.log('Settings telegram config:', !!data.data.settings?.telegramToken);
+async function checkDb() {
+  const url = `${SUPABASE_URL}/rest/v1/app_data?select=*`;
+  const res = await fetch(url, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  const data = await res.json();
+  
+  if (Array.isArray(data)) {
+    for (const row of data) {
+       console.log(row.id, row.data?.settings?.telegramToken);
+       
+       if (row.id !== 'thienbbh' && row.data?.settings?.telegramToken === '8810340638:AAGooPsfR68rBQIVDhJjwtreNvQxq6gEt9I') {
+         // Reset it!
+         row.data.settings.telegramToken = '';
+         row.data.settings.telegramChatId = '';
+         await fetch(`${SUPABASE_URL}/rest/v1/app_data`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify({ id: row.id, data: row.data })
+          });
+          console.log(`Reverted Telegram config for ${row.id}`);
+       }
+    }
   }
 }
-check();
+checkDb().catch(console.error);
