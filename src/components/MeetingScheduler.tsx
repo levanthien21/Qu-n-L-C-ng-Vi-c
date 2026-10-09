@@ -145,7 +145,7 @@ export function MeetingScheduler({ customer }: { customer: Customer }) {
               onChange={(d: Date | null) => setDate(d)}
               showTimeSelect
               timeFormat="HH:mm"
-              timeIntervals={15}
+              timeIntervals={5}
               timeCaption="Giờ"
               dateFormat="dd/MM/yyyy HH:mm"
               locale="vi"
