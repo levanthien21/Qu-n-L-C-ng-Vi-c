@@ -91,6 +91,12 @@ export default async function handler(req: any, res: any) {
           shouldUpdate = true;
         }
         
+        if (diffMins <= 0 && diffMins > -10 && !m.notified0) {
+          sendTelegram(token, chatId, `🔴 [ĐÃ TỚI GIỜ HẸN] Khách hàng <b>${c.name}</b> đã đến giờ họp rồi nhé!\n- Thời gian: ${timeStr}`);
+          m.notified0 = true;
+          shouldUpdate = true;
+        }
+        
         if (diffMins > 0 && diffMins <= 10 && !m.notified10) {
           sendTelegram(token, chatId, `🔥 [NHẮC LỊCH 10 PHÚT] Khách hàng <b>${c.name}</b> đã sắp đến giờ họp!\n- Thời gian: ${timeStr}`);
           m.notified10 = true;

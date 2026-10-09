@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CalendarDays, CalendarPlus, Check, Clock, Trash2, Undo2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { sendTelegramMessage } from '../utils/telegram';
 import type { Customer } from '../domain/types';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { vi } from 'date-fns/locale/vi';
@@ -53,10 +54,23 @@ export function MeetingScheduler({ customer }: { customer: Customer }) {
     e.preventDefault();
     if (!date) return;
     const label = typeOf(type).label;
-    const isoDate = toLocalInput(date); // or date.toISOString() - fallback to LocalInput equivalent so countdowns work the same
-    const m = { id: Date.now().toString(), date: isoDate, note: note.trim() || label, type };
+    const isoDate = toLocalInput(date);
+    const m = { id: Date.now().toString(), date: isoDate, note: label, type };
+    
+    const store = useStore.getState();
+    // customer is already passed as a prop
+    const settings = store.settings;
+    
+    if (customer && settings && settings.telegramToken && settings.telegramChatId) {
+       const timeStr = date.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+       sendTelegramMessage(
+          settings.telegramToken,
+          settings.telegramChatId,
+          `🆕 <b>ĐÃ THÊM LỊCH HẸN MỚI</b>\nKhách hàng: <b>${customer.name}</b>\nNội dung: ${label}\nThời gian: ${timeStr}`
+       );
+    }
+
     save([...meetings, m].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-    setNote('');
     setDate(null);
   };
 
