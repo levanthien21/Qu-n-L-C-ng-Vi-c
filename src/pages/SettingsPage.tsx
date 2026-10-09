@@ -22,7 +22,30 @@ function Num({ label, k, hint }: { label: string; k: keyof Settings; hint?: stri
 }
 
 export default function SettingsPage() {
-  const isGlobal = localStorage.getItem('dvhl_workspace') === 'global';
+  const isGlobal = localStorage.getItem('dvhl_workspace') === 'thienbbh';
+  
+  const handleDeleteColleague = async (id: string) => {
+    if (id === 'thienbbh') return alert('Không thể xóa chính bạn!');
+    if (!window.confirm('Bạn có chắc chắn muốn xóa không gian làm việc này? Toàn bộ dữ liệu của họ sẽ bị xóa vĩnh viễn!')) return;
+  
+    const url = (import.meta as any).env.VITE_SUPABASE_URL + '/rest/v1/app_data?id=eq.' + encodeURIComponent(id);
+    const headers = {
+      apikey: (import.meta as any).env.VITE_SUPABASE_ANON_KEY,
+      Authorization: 'Bearer ' + (import.meta as any).env.VITE_SUPABASE_ANON_KEY
+    };
+    
+    try {
+       const res = await fetch(url, { method: 'DELETE', headers });
+       if (res.ok) {
+         setAdminStats(prev => prev.filter(s => s.id !== id));
+         alert('Đã xóa thành công không gian làm việc: ' + id);
+       } else {
+         alert('Xóa thất bại: ' + res.statusText);
+       }
+    } catch(e) {
+       alert('Lỗi kết nối khi xóa!');
+    }
+  };
   const [adminStats, setAdminStats] = useState<any[]>([]);
   const [loadingAdminStats, setLoadingAdminStats] = useState(false);
 
@@ -161,7 +184,7 @@ export default function SettingsPage() {
           <h2 className="section-title text-indigo-700 flex items-center gap-2">
             👑 Quản trị viên (Thống kê đồng nghiệp)
           </h2>
-          <p className="text-xs text-indigo-500 mb-3">Tính năng này chỉ hiển thị riêng cho mã "global". Dùng để theo dõi tình hình sử dụng của các đồng nghiệp.</p>
+          <p className="text-xs text-indigo-500 mb-3">Tính năng này chỉ hiển thị riêng cho mã "thienbbh". Dùng để theo dõi tình hình sử dụng của các đồng nghiệp.</p>
           
           {loadingAdminStats ? (
              <p className="text-sm text-slate-500 animate-pulse">Đang tải dữ liệu...</p>
@@ -173,21 +196,29 @@ export default function SettingsPage() {
                      <th className="p-2.5 font-semibold rounded-tl-lg">Mã không gian</th>
                      <th className="p-2.5 font-semibold">Tổng Khách hàng</th>
                      <th className="p-2.5 font-semibold text-orange-600">Đang triển khai</th>
-                     <th className="p-2.5 font-semibold text-emerald-600 rounded-tr-lg">Đã hoàn thành</th>
+                     <th className="p-2.5 font-semibold text-emerald-600">Đã hoàn thành</th>
+                     <th className="p-2.5 font-semibold text-red-600 rounded-tr-lg">Hành động</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-indigo-100/50">
                    {adminStats.map(s => (
                      <tr key={s.id} className="hover:bg-white/50 transition-colors">
-                       <td className="p-2.5 font-bold text-slate-700">{s.id === 'global' ? 'Tôi (global)' : s.id}</td>
+                       <td className="p-2.5 font-bold text-slate-700">{s.id === 'thienbbh' ? 'Tôi (global)' : s.id}</td>
                        <td className="p-2.5 font-medium text-slate-600">{s.total} KH</td>
                        <td className="p-2.5 font-medium text-orange-600">{s.active} KH</td>
                        <td className="p-2.5 font-medium text-emerald-600">{s.done} KH</td>
+                       <td className="p-2.5 text-right">
+                         {s.id !== 'thienbbh' && (
+                           <button onClick={() => handleDeleteColleague(s.id)} className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-semibold">
+                             Xóa bỏ
+                           </button>
+                         )}
+                       </td>
                      </tr>
                    ))}
                    {adminStats.length === 0 && (
                      <tr>
-                       <td colSpan={4} className="p-4 text-center text-slate-500">Chưa có dữ liệu.</td>
+                       <td colSpan={5} className="p-4 text-center text-slate-500">Chưa có dữ liệu.</td>
                      </tr>
                    )}
                  </tbody>

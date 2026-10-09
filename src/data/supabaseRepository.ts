@@ -16,7 +16,7 @@ export class SupabaseRepository implements Repository {
       const { data, error } = await supabase
         .from('app_data')
         .select('data')
-        .eq('id', localStorage.getItem('dvhl_workspace') || 'global')
+        .eq('id', localStorage.getItem('dvhl_workspace') || 'thienbbh')
         .single();
       
       if (error || !data) return null;
@@ -29,7 +29,7 @@ export class SupabaseRepository implements Repository {
   private async write(appData: AppData): Promise<void> {
     await supabase
       .from('app_data')
-      .upsert({ id: localStorage.getItem('dvhl_workspace') || 'global', data: appData });
+      .upsert({ id: localStorage.getItem('dvhl_workspace') || 'thienbbh', data: appData });
   }
 
   private async mutate(fn: (d: AppData) => void): Promise<void> {

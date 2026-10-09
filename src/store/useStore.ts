@@ -138,7 +138,7 @@ export const useStore = create<State>((set, get) => {
       if (!data) {
         const templates = defaultTemplates();
         const demo = buildDemoData(templates, today);
-        data = normalizeData({ templates, customers: demo.customers, tasks: demo.tasks, settings: DEFAULT_SETTINGS });
+        data = normalizeData({ templates, customers: [], tasks: [], settings: DEFAULT_SETTINGS });
         await repository.replaceAll(data);
       }
       set({
