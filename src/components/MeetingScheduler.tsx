@@ -153,7 +153,7 @@ export function MeetingScheduler({ customer }: { customer: Customer }) {
               className="input text-sm sm:w-[220px]"
               required
             />
-            <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nội dung hẹn (VD: Hướng dẫn Retion, chốt link test...)" className="input flex-1 text-sm" />
+            
             <button type="submit" className="btn-primary whitespace-nowrap text-sm">
               <CalendarPlus size={16} /> Thêm lịch
             </button>
@@ -162,6 +162,20 @@ export function MeetingScheduler({ customer }: { customer: Customer }) {
         </form>
 
         <div className="space-y-2">
+          {upcoming.length > 0 && (
+            <div className="flex justify-end mb-1">
+              <button 
+                type="button" 
+                onClick={() => {
+                   const ids = upcoming.map(u => u.id);
+                   save(meetings.map(x => ids.includes(x.id) ? { ...x, done: true } : x));
+                }}
+                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md transition-colors flex items-center gap-1"
+              >
+                <Check size={14} /> Đánh dấu xong tất cả
+              </button>
+            </div>
+          )}
           {upcoming.length === 0 && (
             <div className="rounded-xl border border-dashed border-orange-200 p-4 text-center text-sm italic text-slate-500">
               Chưa có lịch hẹn sắp tới. Hãy tạo lịch ngay phía trên!
