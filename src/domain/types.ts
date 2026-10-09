@@ -206,6 +206,11 @@ export interface AppData {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  googleScriptUrl: 'https://script.google.com/macros/s/AKfycbx7jw3ZTcMh0t6ROz4wL6kYsVnvBzj_RPxZZh9HAhMGfACUcFL3ZXrxjv0AME17O6I/exec',
+  telegramToken: '8810340638:AAGooPsfR68rBQIVDhJjwtreNvQxq6gEt9I',
+  telegramChatId: '8770897961',
+  telegramNotifyProgress: true,
+  telegramNotifyMeetings: true,
   contactAlertDays: 3,
   staleDays: 5,
   waitingWarnDays: 10,

@@ -135,6 +135,13 @@ export const useStore = create<State>((set, get) => {
     async init() {
       let data = await repository.loadAll();
       const today = todayStr();
+      if (data) {
+        data.settings.googleScriptUrl = data.settings.googleScriptUrl || DEFAULT_SETTINGS.googleScriptUrl;
+        data.settings.telegramToken = data.settings.telegramToken || DEFAULT_SETTINGS.telegramToken;
+        data.settings.telegramChatId = data.settings.telegramChatId || DEFAULT_SETTINGS.telegramChatId;
+        if (data.settings.telegramNotifyProgress === undefined) data.settings.telegramNotifyProgress = DEFAULT_SETTINGS.telegramNotifyProgress;
+        if (data.settings.telegramNotifyMeetings === undefined) data.settings.telegramNotifyMeetings = DEFAULT_SETTINGS.telegramNotifyMeetings;
+      }
       if (!data) {
         const templates = defaultTemplates();
         const demo = buildDemoData(templates, today);
