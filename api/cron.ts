@@ -156,12 +156,17 @@ function parseMilestones(data: any): any[] {
     return String(rawDate);
   };
 
-  const timeline = data['Timeline 30 ngày '] || data['Timeline 30 ngày'] || data['Timeline 14 ngày '] || data['Timeline 14 ngày'];
+  const timelineKey = Object.keys(data).find((k) => k.trim().toLowerCase().includes('timeline'));
+  const timeline = timelineKey ? data[timelineKey] : undefined;
   if (timeline && timeline.length > 0) {
-    let mIdx = timeline.findIndex((r: any[]) => String(r[0]).trim() === 'Giai đoạn' && String(r[1]).trim() === 'Bắt đầu');
+    let mIdx = timeline.findIndex((r: any[]) => {
+      const c0 = String(r[0] || '').trim().toLowerCase();
+      const c1 = String(r[1] || '').trim().toLowerCase();
+      return (c0 === 'giai đoạn' || c0 === 'giai doan') && c1.includes('bắt đầu');
+    });
     if (mIdx >= 0) {
       for (let i = mIdx + 1; i < mIdx + 15; i++) {
-        if (!timeline[i] || !timeline[i][0]) break;
+        if (!timeline[i] || !timeline[i][0] || String(timeline[i][0]).trim() === '') break;
         const mName = String(timeline[i][0]).trim();
         const mStart = formatDate(timeline[i][1]);
         const mEnd = formatDate(timeline[i][2]);

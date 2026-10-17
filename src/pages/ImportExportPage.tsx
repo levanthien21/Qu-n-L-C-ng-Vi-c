@@ -15,6 +15,7 @@ type FieldKey =
   | 'phone'
   | 'chatLink'
   | 'summaryLink'
+  | 'sheetLink'
   | 'saleId'
   | 'retionId'
   | 'package'
@@ -29,6 +30,7 @@ const FIELDS: { key: FieldKey; label: string; required?: boolean; keywords: stri
   { key: 'phone', label: 'SĐT / Zalo', keywords: ['sdt', 'so dien thoai', 'zalo', 'phone'] },
   { key: 'chatLink', label: 'Link nhóm chat', keywords: ['link nhom', 'nhom chat'] },
   { key: 'summaryLink', label: 'Link tổng hợp gói DVHL', keywords: ['tong hop', 'link goi'] },
+  { key: 'sheetLink', label: 'Link Google Sheet', keywords: ['link sheet', 'google sheet', 'sheet', 'file sheet', 'link file', 'link gg sheet'] },
   { key: 'saleId', label: 'ID sale', keywords: ['id sale', 'sale'] },
   { key: 'retionId', label: 'ID QTV / ID tổ chức Retion', keywords: ['qtv', 'to chuc', 'retion'] },
   { key: 'package', label: 'Gói (30 / 14 ngày)', keywords: ['goi', 'package'] },
@@ -106,6 +108,7 @@ export default function ImportExportPage() {
         phone: get('phone'),
         chatLink: get('chatLink'),
         summaryLink: get('summaryLink'),
+        sheetLink: get('sheetLink'),
         saleId: get('saleId'),
         retionId: get('retionId'),
         paymentStatus: partial ? 'partial' : 'full',

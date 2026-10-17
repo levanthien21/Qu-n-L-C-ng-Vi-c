@@ -25,6 +25,7 @@ export interface NewCustomerInput {
   phone: string;
   chatLink: string;
   summaryLink: string;
+  sheetLink?: string;
   saleId: string;
   retionId: string;
   paymentStatus: PaymentStatus;

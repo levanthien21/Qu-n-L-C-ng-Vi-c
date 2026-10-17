@@ -84,7 +84,14 @@ export default function TodayPage() {
   };
 
   const forceSync = async (c: Customer) => {
-    if (!settings.googleScriptUrl || !c.sheetLink) return;
+    if (!settings.googleScriptUrl) {
+      alert('Chưa có cấu hình Google Apps Script Webhook trong mục Cài đặt!');
+      return;
+    }
+    if (!c.sheetLink) {
+      alert('Khách hàng này chưa được nhập link Google Sheet!');
+      return;
+    }
     const match = c.sheetLink.match(/\/d\/([a-zA-Z0-9-_]+)/);
     if (!match) { alert('Link Google Sheet không đúng định dạng!'); return; }
     

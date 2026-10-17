@@ -43,7 +43,11 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
     return String(rawDate);
   };
 
-  const loTrinh = data['Lộ trình triển khai'];
+  const loTrinhKey = Object.keys(data).find((k) => {
+    const norm = k.trim().toLowerCase();
+    return norm.includes('lộ trình') || norm.includes('lo trinh');
+  });
+  const loTrinh = loTrinhKey ? data[loTrinhKey] : undefined;
   if (loTrinh && loTrinh.length > 0) {
     let currentPhase = '';
     for (let i = 0; i < loTrinh.length; i++) {
@@ -70,15 +74,33 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
     }
   }
 
-  const is14Days = !!(data['Timeline 14 ngày '] || data['Timeline 14 ngày']);
-  result.durationDays = is14Days ? 14 : 30;
+  const timelineKey = Object.keys(data).find((k) => k.trim().toLowerCase().includes('timeline'));
+  const timeline = timelineKey ? data[timelineKey] : undefined;
 
-  const timeline = data['Timeline 30 ngày '] || data['Timeline 30 ngày'] || data['Timeline 14 ngày '] || data['Timeline 14 ngày'];
+  if (timelineKey) {
+    const kNorm = timelineKey.trim().toLowerCase();
+    if (kNorm.includes('14')) {
+      result.durationDays = 14;
+    } else if (kNorm.includes('30')) {
+      result.durationDays = 30;
+    } else if (timeline && timeline.length > 1) {
+      const r1 = timeline[1] || [];
+      const tongIdx = r1.findIndex((c: any) => String(c).trim().toLowerCase() === 'tổng');
+      if (tongIdx >= 0 && r1[tongIdx + 1] && !isNaN(Number(r1[tongIdx + 1]))) {
+        result.durationDays = Number(r1[tongIdx + 1]);
+      }
+    }
+  }
+
   if (timeline && timeline.length > 0) {
-    let mIdx = timeline.findIndex((r: any[]) => String(r[0]).trim() === 'Giai đoạn' && String(r[1]).trim() === 'Bắt đầu');
+    let mIdx = timeline.findIndex((r: any[]) => {
+      const c0 = String(r[0] || '').trim().toLowerCase();
+      const c1 = String(r[1] || '').trim().toLowerCase();
+      return (c0 === 'giai đoạn' || c0 === 'giai doan') && c1.includes('bắt đầu');
+    });
     if (mIdx >= 0) {
       for (let i = mIdx + 1; i < mIdx + 15; i++) {
-        if (!timeline[i] || !timeline[i][0]) break;
+        if (!timeline[i] || !timeline[i][0] || String(timeline[i][0]).trim() === '') break;
         const mName = String(timeline[i][0]).trim();
         const mStart = formatDate(timeline[i][1]);
         const mEnd = formatDate(timeline[i][2]);
