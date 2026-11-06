@@ -117,6 +117,55 @@ export function parseSheetData(data: Record<string, any[][]> | undefined): Sheet
     }
   }
 
+  // ---- B2C (7 ngày): không có tab Timeline -> dựng lịch trình từ tab "Bàn giao & SLA" + "Hướng dẫn" ----
+  if (result.milestones.length === 0) {
+    const findTab = (kw: string) => {
+      const k = Object.keys(data).find((x) => x.trim().toLowerCase().includes(kw));
+      return k ? data[k] : undefined;
+    };
+    const labelValue = (rows: any[][] | undefined, label: string): string => {
+      if (!rows) return '';
+      for (const r of rows) {
+        if (String(r[0] || '').trim().toLowerCase().startsWith(label)) {
+          const v = r.slice(1).find((c) => c !== '' && c !== null && c !== undefined);
+          return v === undefined ? '' : formatDate(v);
+        }
+      }
+      return '';
+    };
+    const sla = findTab('bàn giao');
+    const guide = findTab('hướng dẫn');
+    const start = labelValue(sla, 'ngày bắt đầu');
+    const handover = labelValue(sla, 'ngày bàn giao');
+    const guideDate = labelValue(guide, 'ngày / giờ') || labelValue(guide, 'ngày');
+    const isDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
+
+    if (isDate(start)) {
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      // Checklist bàn giao: các dòng có STT số, cột D = BBH xác nhận
+      const items = (sla || []).filter((r) => /^\d+$/.test(String(r[0]).trim()) && typeof r[3] === 'boolean');
+      const handoverDone = items.length > 0 && items.every((r) => r[3] === true);
+      const st = (done: boolean, doing = false) => (done ? 'Hoàn thành' : doing ? 'Đang thực hiện' : 'Chưa bắt đầu');
+      const g = isDate(guideDate) ? guideDate : start;
+      const guideDone = g <= today || handoverDone;
+      const end = isDate(handover) ? handover : start;
+
+      result.milestones = [
+        { name: 'Kick-off', start, end: start, status: st(start <= today || handoverDone) },
+        { name: 'Buổi 2 (Hướng dẫn sử dụng)', start: g, end: g, status: st(guideDone) },
+        { name: 'Setup & Test', start: g, end, status: st(handoverDone, guideDone) },
+        { name: 'Nghiệm thu', start: end, end, status: st(handoverDone) },
+      ];
+      result.startDate = start;
+      result.durationDays = 7;
+      if (!result.totalTasks && items.length) {
+        result.totalTasks = items.length;
+        result.completedTasks = items.filter((r) => r[3] === true).length;
+      }
+    }
+  }
+
   if (result.totalTasks > 0) {
     result.percent = Math.round((result.completedTasks / result.totalTasks) * 100);
   }
